@@ -15,5 +15,7 @@ libraryDependencies ++= Seq(
   "org.glassfish.jersey.media" % "jersey-media-sse" % "2.15",
   "com.typesafe" % "config" % "1.2.1",
   "com.sclasen" %% "akka-kafka" % "0.1.0",
-  "com.typesafe.akka" %% "akka-slf4j" % "2.3.9"
+  "org.slf4j" % "log4j-over-slf4j" % "1.7.10" % "compile",
+  "org.elasticsearch" % "elasticsearch" % "1.4.3",
+  "commons-io" % "commons-io" % "2.4"
 )

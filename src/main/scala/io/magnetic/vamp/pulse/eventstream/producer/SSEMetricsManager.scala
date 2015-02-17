@@ -6,19 +6,18 @@ import akka.stream.actor.ActorPublisher
 
 import scala.annotation.tailrec
 
-object MetricsManager {
-  def props: Props = Props[MetricsManager]
+object SSEMetricsManager {
+  def props: Props = Props[SSEMetricsManager]
 
 
-  final case class Metric(payload: String)
 
   case object Accepted
   case object Rejected
 }
 
-class MetricsManager extends ActorPublisher[MetricsManager.Metric] {
+class SSEMetricsManager extends ActorPublisher[Metric] {
   import akka.stream.actor.ActorPublisherMessage._
-  import MetricsManager._
+  import SSEMetricsManager._
 
   val maxBufSize = 1000
   var buf = Vector.empty[Metric]
