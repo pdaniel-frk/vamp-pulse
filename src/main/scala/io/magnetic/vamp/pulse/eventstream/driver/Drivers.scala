@@ -3,7 +3,7 @@ package io.magnetic.vamp.pulse.eventstream.driver
 import akka.actor.{ActorSystem, ActorRef}
 import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
 import com.typesafe.config.ConfigFactory
-import io.magnetic.vamp.pulse.eventstream.producer.{Metric, SSEMetricsManager}
+import io.magnetic.vamp.pulse.eventstream.producer.{Metric, SSEMetricsPublisher$}
 import kafka.serializer.{StringDecoder, DefaultDecoder}
 import org.glassfish.jersey.client.{JerseyClientBuilder, JerseyClient}
 import org.glassfish.jersey.media.sse.{InboundEvent, EventSource}
@@ -45,7 +45,7 @@ object KafkaDriver extends Driver {
       zkConnect = config("url"),
       topic = config("topic"),
       group = config("group"),
-      streams = 4, //one per partition
+      streams = config("num").toInt, //one per partition
       keyDecoder = new DefaultDecoder(),
       msgDecoder = new StringDecoder(),
       receiver = ref

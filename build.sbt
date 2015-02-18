@@ -2,11 +2,16 @@ name := """vamp-pulse-poc"""
 
 version := "0.1"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
+
 
 resolvers ++= Seq(
-  "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
+  "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
+  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
+  Resolver.mavenLocal
 )
+//TODO: Look into slf4j dependency issues, that is solved now by log4j-over-slf4j.
+// I think the problem is akka-streams conflicting with akka-kafka
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M2",
@@ -17,5 +22,9 @@ libraryDependencies ++= Seq(
   "com.sclasen" %% "akka-kafka" % "0.1.0",
   "org.slf4j" % "log4j-over-slf4j" % "1.7.10" % "compile",
   "org.elasticsearch" % "elasticsearch" % "1.4.3",
-  "commons-io" % "commons-io" % "2.4"
+  "commons-io" % "commons-io" % "2.4",
+  "org.scalatest" %% "scalatest" % "3.0.0-SNAP4" % "test",
+  "org.specs2" %% "specs2" % "2.4.16" % "test",
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
+  "io.magnetic.vamp-common" % "vamp_common" % "0.4.0"
 )

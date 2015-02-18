@@ -8,13 +8,12 @@ import com.sclasen.akka.kafka.StreamFSM
 import scala.annotation.tailrec
 
 
-object KafkaMetricsManager {
-  def props: Props = Props[KafkaMetricsManager]
+object KafkaMetricsPublisher {
+  def props: Props = Props[KafkaMetricsPublisher]
 }
 
-class KafkaMetricsManager extends ActorPublisher[Metric]{
+class KafkaMetricsPublisher extends ActorPublisher[Metric]{
 
-  val maxBufSize = 1000
   var buf = Vector.empty[(ActorRef, Metric)]
 
   override def receive: Receive = {
