@@ -17,13 +17,12 @@ class KafkaMetricsPublisher extends ActorPublisher[Metric]{
   var buf = Vector.empty[(ActorRef, Metric)]
 
   override def receive: Receive = {
-    case met: String =>
-      val metric = Metric(met)
+    case met: Metric =>
       if(buf.isEmpty && totalDemand > 0) {
-        onNext(metric)
+        onNext(met)
         sender() ! StreamFSM.Processed
       } else {
-        buf :+= (sender(), metric)
+        buf :+= (sender(), met)
         deliverBuf()
       }
     case Request(_) => deliverBuf()

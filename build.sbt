@@ -1,6 +1,6 @@
-name := """vamp-pulse-poc"""
+name := """vamp-pulse"""
 
-version := "0.1"
+version := "0.5.0"
 
 scalaVersion := "2.11.5"
 
@@ -14,7 +14,9 @@ resolvers ++= Seq(
 // I think the problem is akka-streams conflicting with akka-kafka
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M2",
+  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M3",
+  "com.typesafe.akka" %% "akka-http-experimental" % "1.0-M3",
+  "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M3",
   "org.scala-lang.modules" %% "scala-async" % "0.9.2",
   "org.glassfish.jersey.core" % "jersey-client" % "2.15",
   "org.glassfish.jersey.media" % "jersey-media-sse" % "2.15",
@@ -26,5 +28,5 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.0-SNAP4" % "test",
   "org.specs2" %% "specs2" % "2.4.16" % "test",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
-  "io.magnetic.vamp-common" % "vamp_common" % "0.4.0"
+  "io.magnetic.vamp-common" % "vamp-common" % "0.5.0"
 )

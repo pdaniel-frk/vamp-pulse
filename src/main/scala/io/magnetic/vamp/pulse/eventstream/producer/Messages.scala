@@ -1,3 +1,5 @@
 package io.magnetic.vamp.pulse.eventstream.producer
 
-final case class Metric(payload: String)
+import java.util.Date
+
+final case class Metric(name: String, value: Int, timestamp: Date)
