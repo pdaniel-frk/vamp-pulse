@@ -5,8 +5,8 @@ import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
 import io.magnetic.vamp.pulse.eventstream.producer.Metric
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike, BeforeAndAfter}
-import org.specs2.matcher.Matchers
 import scala.concurrent.duration._
+import org.scalatest.Matchers
 
 
 class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)

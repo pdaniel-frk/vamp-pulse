@@ -3,7 +3,6 @@ import kafka.serializer.Decoder
 import kafka.serializer.StringDecoder
 import io.magnetic.vamp.pulse.eventstream.producer.Metric
 import kafka.utils.VerifiableProperties
-import org.elasticsearch.common.netty.handler.codec.string.StringDecoder
 import org.json4s._
 import org.json4s.native.JsonMethods._
 /**

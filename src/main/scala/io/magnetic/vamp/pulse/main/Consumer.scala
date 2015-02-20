@@ -7,7 +7,7 @@ import javax.ws.rs.core.{MultivaluedMap, MediaType}
 import javax.ws.rs.ext.MessageBodyReader
 
 import akka.actor.ActorSystem
-import akka.stream.{ConnectionException, FlowMaterializer}
+import akka.stream.{ActorFlowMaterializer, ConnectionException, FlowMaterializer}
 import akka.stream.scaladsl.{PropsSource, Sink, Source}
 import akka.util.Timeout
 import com.sclasen.akka.kafka.AkkaConsumerProps
@@ -19,6 +19,11 @@ import kafka.serializer.{StringDecoder, DefaultDecoder}
 import org.glassfish.jersey.client.{JerseyClient, JerseyClientBuilder}
 import org.glassfish.jersey.media.sse.{EventInput, SseFeature}
 import ESLocalServer._
+import org.json4s._
+import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization
+import org.json4s.native.Serialization.{read, write}
+
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -26,6 +31,7 @@ import scala.util.Try
 object Consumer {
 
   val config = ConfigFactory.load()
+  implicit val formats = Serialization.formats(NoTypeHints)
 
 
 
@@ -37,12 +43,12 @@ object Consumer {
     val driverType = Try(config.getString("stream.driver")).getOrElse("sse")
     
     implicit val system = ActorSystem("metric-consumer")
-    implicit val mat = FlowMaterializer()
+    implicit val mat = ActorFlowMaterializer()
     
     var metricManagerSource: PropsSource[Metric] = null
     
     lazy val materializedMap = metricManagerSource
-      .to(Sink.foreach(elem => dao.insert(elem.payload)))
+      .to(Sink.foreach(elem => dao.insert(write(elem))))
       .run()
     
     driverType match {

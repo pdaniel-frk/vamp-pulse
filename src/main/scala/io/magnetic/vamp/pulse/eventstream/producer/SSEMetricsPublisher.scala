@@ -15,7 +15,7 @@ object SSEMetricsPublisher {
   case object Rejected
 }
 
-class SSEMetricsPublisher extends ActorPublisher[Metric] {
+class SSEMetricsPublisher extends ActorPublisher[Metric]  {
   import akka.stream.actor.ActorPublisherMessage._
   import SSEMetricsPublisher._
 
@@ -24,10 +24,10 @@ class SSEMetricsPublisher extends ActorPublisher[Metric] {
 
   override def receive: Receive = {
     case metric: Metric if buf.size == maxBufSize =>
-      sender ! Rejected
+//      sender ! Rejected
       println(s"Rejected a message due to buffer overflow: $metric")
     case metric: Metric =>
-      sender ! Accepted
+//      sender ! Accepted
       if(buf.isEmpty && totalDemand > 0)
         onNext(metric)
       else {

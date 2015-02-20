@@ -5,7 +5,7 @@ import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
 import io.magnetic.vamp.pulse.eventstream.producer.Metric
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike, BeforeAndAfter}
-import org.specs2.matcher.Matchers
+import org.scalatest.Matchers
 import scala.concurrent.duration._
 
 

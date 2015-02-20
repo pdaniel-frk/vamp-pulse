@@ -26,7 +26,6 @@ libraryDependencies ++= Seq(
   "org.elasticsearch" % "elasticsearch" % "1.4.3",
   "commons-io" % "commons-io" % "2.4",
   "org.scalatest" %% "scalatest" % "3.0.0-SNAP4" % "test",
-  "org.specs2" %% "specs2" % "2.4.16" % "test",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
   "io.magnetic.vamp-common" % "vamp-common" % "0.5.0"
 )
