@@ -31,5 +31,6 @@ libraryDependencies ++= Seq(
   "io.spray" %% "spray-http" % "1.3.2",
   "io.spray" %% "spray-util" % "1.3.2",
   "io.spray" %% "spray-io" % "1.3.2",
-  "com.github.nscala-time" %% "nscala-time" % "1.8.0"
+  "com.github.nscala-time" %% "nscala-time" % "1.8.0",
+  "com.sksamuel.elastic4s" %% "elastic4s" % "1.4.12"
 )

@@ -1,44 +1,41 @@
 package io.magnetic.vamp.pulse.main
 
-import java.io.InputStream
-import java.lang.annotation.Annotation
-import java.lang.reflect.Type
-import javax.ws.rs.core.{MultivaluedMap, MediaType}
-import javax.ws.rs.ext.MessageBodyReader
-
 import akka.actor.ActorSystem
-import akka.stream.{ActorFlowMaterializer, ConnectionException, FlowMaterializer}
+import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl.{PropsSource, Sink, Source}
-import akka.util.Timeout
-import com.sclasen.akka.kafka.AkkaConsumerProps
-import com.typesafe.config.{ConfigException, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 import io.magnetic.vamp.pulse.eventstream.driver.{KafkaDriver, SseDriver}
 import io.magnetic.vamp.pulse.eventstream.producer._
-import io.magnetic.vamp.pulse.storage.engine.{MetricDAO, ESLocalServer}
-import kafka.serializer.{StringDecoder, DefaultDecoder}
-import org.glassfish.jersey.client.{JerseyClient, JerseyClientBuilder}
-import org.glassfish.jersey.media.sse.{EventInput, SseFeature}
-import ESLocalServer._
+import io.magnetic.vamp.pulse.storage.engine.{ESLocalServer, MetricDAO}
 import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
-import org.json4s.native.Serialization.{read, write}
+import org.json4s.native.Serialization.write
+import akka.io.IO
+import spray.can.Http
 
-
-import scala.concurrent.duration._
 import scala.util.Try
 
-object Consumer {
+object Startup {
+
+  val logging = Logging
 
   val config = ConfigFactory.load()
   implicit val formats = Serialization.formats(NoTypeHints)
 
 
-
   def main(args: Array[String]) {
-    ESLocalServer.start
+
+    val esConf = config.getConfig("storage.es")
+    var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
+
+    esConf.getBoolean("embedded") match {
+      case true  =>  esServer = Option(new ESLocalServer(esConf.getString("cluster.name"))); esServer.get.start
+      case false =>  println("")
+    }
+
+    // ESLocalServer.start
     val dao = new MetricDAO
-    ESLocalServer.createAndWaitForIndex(dao.createIndex)
+    // ESLocalServer.createAndWaitForIndex(dao.createIndex)
 
     val driverType = Try(config.getString("stream.driver")).getOrElse("sse")
     

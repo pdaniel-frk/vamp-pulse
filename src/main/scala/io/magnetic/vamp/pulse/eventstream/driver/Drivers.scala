@@ -40,7 +40,7 @@ object SseDriver extends Driver{
 }
 
 object KafkaDriver extends Driver {
-  var consumer: Option[AkkaConsumer[Array[Byte], String]] = Option.empty
+  var consumer: Option[AkkaConsumer[Array[Byte], Metric]] = Option.empty
   
   override def start(config: Map[String, String], ref: ActorRef, system: ActorSystem): Unit = {
     val consumerProps = AkkaConsumerProps.forSystem(
@@ -48,9 +48,9 @@ object KafkaDriver extends Driver {
       zkConnect = config("url"),
       topic = config("topic"),
       group = config("group"),
-      streams = config("num").toInt, //one per partition
+      streams = config("partitions").toInt, //one per partition
       keyDecoder = new DefaultDecoder(),
-      msgDecoder = new StringDecoder(),
+      msgDecoder = new MetricDecoder(),
       receiver = ref
     )
     consumer = Option(new AkkaConsumer(consumerProps))
