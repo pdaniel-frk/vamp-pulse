@@ -1,5 +1,10 @@
 package io.magnetic.vamp.pulse.eventstream.producer
 
-import java.util.Date
+import java.time.OffsetDateTime
 
-final case class Metric(name: String, value: Int, timestamp: Date = new Date())
+trait Event {
+}
+
+final case class Metric(tags: Seq[String], value: Double, timestamp: OffsetDateTime) extends Event
+
+final case class ConcreteEvent(tags: Seq[AnyRef], value: AnyRef, timestamp: OffsetDateTime = OffsetDateTime.now()) extends Event

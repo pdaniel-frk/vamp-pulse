@@ -1,6 +1,9 @@
 package io.magnetic.vamp.pulse.eventstream.decoder
 
+import java.time.OffsetDateTime
+
 import io.magnetic.vamp.pulse.eventstream.notification.UnableToDecode
+import io.magnetic.vamp.pulse.util.Serializers
 import kafka.serializer.Decoder
 import kafka.serializer.StringDecoder
 import io.magnetic.vamp.pulse.eventstream.producer.Metric
@@ -16,7 +19,7 @@ import scala.util.Try
  * Created by lazycoder on 19/02/15.
  */
 class MetricDecoder(props: VerifiableProperties = null) extends Decoder[Metric]{
-  implicit val formats = DefaultFormats
+  implicit val formats = Serializers.formats
   val stringDecoder = new StringDecoder(props)
   
   override def fromBytes(bytes: Array[Byte]): Metric = {

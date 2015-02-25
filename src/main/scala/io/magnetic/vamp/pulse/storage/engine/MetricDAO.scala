@@ -4,36 +4,31 @@ import com.sksamuel.elastic4s.ElasticClient
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.source.ObjectSource
+import io.magnetic.vamp.pulse.api.MetricQuery
 import io.magnetic.vamp.pulse.eventstream.producer.Metric
-
-
+import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 
 
 class MetricDAO(implicit client: ElasticClient) {
   private val entity = "metric"
   private val ind = "metrics"
-  
-  val mapping =
-    """{  
-       "properties" : {
-                  "name" : {"type" : "string", "index" : "not_analyzed"},
-                  "timestamp" : {"type" : "date"},
-                  "value" : {"type" : "integer"}
-          }
-      }""".stripMargin
 
   def insert(metric: Metric) = {
     client.execute {
-      index into s"$ind/$entity" doc ObjectSource(metric)
-    }
+      index into s"$ind/$entity" doc CustomObjectSource(metric)
+    } await
+  }
+
+  def getMetrics(metricQuery: MetricQuery) = {
+    search in ind->entity term ("tags", metricQuery.tags)
   }
   
   def createIndex = client.execute {
       create index ind mappings (
           entity as (
-            "name" typed StringType analyzer NotAnalyzed,
+            "tags" typed StringType,
             "timestamp" typed DateType,
-            "value" typed IntegerType
+            "value" typed DoubleType
           )
       )
     }

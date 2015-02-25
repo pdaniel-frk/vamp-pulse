@@ -12,8 +12,7 @@ resolvers ++= Seq(
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
   Resolver.mavenLocal
 )
-//TODO: Look into slf4j dependency issues, that is solved now by log4j-over-slf4j.
-// I think the problem is akka-streams conflicting with akka-kafka
+
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M3",
@@ -31,7 +30,10 @@ libraryDependencies ++= Seq(
   "io.spray" %% "spray-http" % "1.3.2",
   "io.spray" %% "spray-util" % "1.3.2",
   "io.spray" %% "spray-io" % "1.3.2",
+  "io.spray" %% "spray-routing" % "1.3.2",
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
   "com.sksamuel.elastic4s" %% "elastic4s" % "1.4.12",
-  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0"
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0",
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % "2.5.0",
+  "org.slf4j" % "slf4j-simple" % "1.7.10"
 )

@@ -1,6 +1,7 @@
 package io.magnetic.vamp.pulse.eventstream.decoder
 
-import org.json4s.DefaultFormats
+import java.time.{OffsetDateTime, Instant, LocalDateTime, LocalDate}
+
 import org.json4s.native.Serialization.{ read, write, writePretty }
 
 
@@ -13,10 +14,12 @@ import scala.io.Source
  */
 class MetricDecoderSpec extends FlatSpec  with Matchers {
   "MetricDecoder" should "be able to decode valid json into a Metric" in {
+
     val metricDecoder = new MetricDecoder()
     val str = Source.fromURL(getClass.getResource("/metric.json")).mkString
     val metric = metricDecoder.fromString(str)
+    println()
+    println(metric)
     metric shouldBe an[Metric]
-
   }
 }

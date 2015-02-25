@@ -14,20 +14,25 @@ class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)
   
   def this() = this(ActorSystem("Drivers"))
   val config = ConfigFactory.load()
-  
+
+
+  override protected def beforeAll(): Registration = {
+    val conf = Map(
+      "url" -> config.getString("stream.sse_url")
+    )
+    SseDriver.start(conf, self, _system)
+  }
+
   override protected def afterAll(): Registration = {
     TestKit.shutdownActorSystem(_system)
+    SseDriver.stop()
+
   }
   
 
   "SSE Driver" must {
     "fetch message from a stream and send it to consumer" in {
-      val conf = Map(
-        "url" -> config.getString("stream.sse_url")
-      )
-      SseDriver.start(conf, self, _system)
       expectMsgClass[Metric](classOf[Metric])
-      SseDriver.stop()
     }
     
   }

@@ -14,12 +14,13 @@ import scala.util.Try
 /**
  * Created by lazycoder on 16/02/15.
  */
-class ESLocalServer(clusterName: String) {
+class ESLocalServer(clusterName: String, httpEnabled: Boolean = false) {
   private val logger = Logger(LoggerFactory.getLogger(classOf[ESLocalServer]))
   private val dataDir = Files.createTempDirectory("es_data_").toFile
   private val settings = ImmutableSettings.settingsBuilder()
                         .put("path.data", dataDir.toString)
                         .put("cluster.name", clusterName)
+                        .put("http.enabled", httpEnabled)
                         .build
   
   private lazy val node = nodeBuilder().settings(settings).build
