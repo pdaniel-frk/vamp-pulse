@@ -3,7 +3,9 @@ package io.magnetic.vamp.pulse.api
 import java.time.OffsetDateTime
 import java.util.Date
 
+import io.magnetic.vamp.pulse.eventstream.producer.Metric
 import io.magnetic.vamp.pulse.storage.engine.MetricDAO
+import org.elasticsearch.action.search.SearchResponse
 import org.json4s.JsonAST.JNull
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
@@ -15,13 +17,13 @@ import spray.http.CacheDirectives.`no-store`
 import spray.http.HttpHeaders.{RawHeader, `Cache-Control`}
 import spray.http.MediaTypes._
 import spray.routing.Directives._
-import org.json4s.native.Serialization
 import io.magnetic.vamp.pulse.util.Serializers
+
 
 import scala.concurrent.ExecutionContext
 import spray.http.StatusCodes._
 
-class Routes(val executionContext: ExecutionContext, val metricDao: MetricDAO) extends Json4sSupport {
+class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
 
   protected def jsonResponse = respondWithMediaType(`application/json`) | respondWithHeaders(`Cache-Control`(`no-store`), RawHeader("Pragma", "no-cache"))
 
@@ -33,8 +35,10 @@ class Routes(val executionContext: ExecutionContext, val metricDao: MetricDAO) e
         pathEndOrSingleSlash {
           post {
             entity(as[MetricQuery]) {
-              request => {
-                complete(OK, request)
+              request =>
+                onSuccess(metricDao.getMetrics(request)){
+                case resp: List[Metric] => complete(OK, resp)
+                case _ => complete(BadRequest)
               }
             }
           }

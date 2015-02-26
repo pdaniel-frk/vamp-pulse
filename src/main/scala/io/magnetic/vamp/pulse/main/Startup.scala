@@ -28,6 +28,7 @@ private object Startup extends App {
 
   implicit val system = ActorSystem("pulse-system")
   implicit val mat = ActorFlowMaterializer()
+  implicit val executionContext = system.dispatcher
 
   val streamDriverType = Try(config.getString("stream.driver")).getOrElse("sse")
 
@@ -56,11 +57,10 @@ private object Startup extends App {
 
   lazy val materializedMap = metricManagerSource
     .to(Sink.foreach(elem =>  {
-    println(elem)
     try {
       metricDao.insert(elem)
     } catch {
-      case ex: Throwable => logger.error("error", ex)
+      case ex: Throwable => logger.error("Unable to write metric to ElasticSearch", ex)
     }
   })).run()
 
@@ -88,7 +88,7 @@ private object Startup extends App {
     IO(Http)(system) ? Http.Bind(server, interface, port)
   }
 
-  def initDriver =   streamDriverType match {
+  def initDriver = streamDriverType match {
     case "sse" =>
       val conf = Map("url" -> config.getString("stream.url"))
       metricManagerSource = Source[Metric](SSEMetricsPublisher.props)
@@ -108,7 +108,7 @@ private object Startup extends App {
 
       KafkaDriver.start(conf, src, system)
 
-    case _ => println(s"Driver $streamDriverType not found "); system.shutdown()
+    case _ => logger.error(s"Driver $streamDriverType not found "); system.shutdown()
 
 
   }

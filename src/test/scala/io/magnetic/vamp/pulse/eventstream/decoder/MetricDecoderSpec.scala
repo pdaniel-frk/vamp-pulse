@@ -18,8 +18,7 @@ class MetricDecoderSpec extends FlatSpec  with Matchers {
     val metricDecoder = new MetricDecoder()
     val str = Source.fromURL(getClass.getResource("/metric.json")).mkString
     val metric = metricDecoder.fromString(str)
-    println()
-    println(metric)
+
     metric shouldBe an[Metric]
   }
 }

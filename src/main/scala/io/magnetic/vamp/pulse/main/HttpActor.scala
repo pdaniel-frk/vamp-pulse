@@ -32,9 +32,9 @@ class HttpActor(val metricDAO: MetricDAO) extends HttpServiceActor with ActorLog
       sender() ! HttpResponse(InternalServerError)
   }
 
-  implicit val executionContext = actorRefFactory.dispatcher
+  val executionContext = actorRefFactory.dispatcher
 
-  def receive = handleTimeouts orElse runRoute(new Routes(executionContext, metricDAO).route)(exceptionHandler, rejectionHandler, context, routingSettings, loggingContext)
+  def receive = handleTimeouts orElse runRoute(new Routes(metricDAO)(executionContext).route)(exceptionHandler, rejectionHandler, context, routingSettings, loggingContext)
 }
 
 object HttpActor {
