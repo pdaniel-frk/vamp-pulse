@@ -26,11 +26,13 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
 
   //TODO: Figure out timestamp issues with elastic: We can only use epoch now + we get epoch as a double from elastic.
   def getMetrics(metricQuery: MetricQuery) = {
-    val shouldMatch = metricQuery.tags.length
+    val tagNum = metricQuery.tags.length
 
-    val queries: Queue[QueryDefinition] = Queue(rangeQuery("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond)
+    val queries: Queue[QueryDefinition] = Queue(
+      rangeQuery("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
+    )
 
-    if(metricQuery.tags.length > 0) queries += termsQuery("tags", metricQuery.tags:_*) minimumShouldMatch(shouldMatch)
+    if(tagNum > 0) queries += termsQuery("tags", metricQuery.tags:_*) minimumShouldMatch(tagNum)
 
     client.execute {
       search in ind -> entity query {
@@ -41,15 +43,13 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
     } map {
       resp => List(resp.getHits.hits().map((hit) =>  decoder.fromString(hit.sourceAsString())): _*)
     }
-
-
   }
   
   def createIndex = client.execute {
       create index ind mappings (
           entity as (
             "tags" typed StringType,
-            "timestamp" typed DateType store(true) format("dateOptionalTime"),
+            "timestamp" typed DateType,
             "value" typed DoubleType
           )
       )
