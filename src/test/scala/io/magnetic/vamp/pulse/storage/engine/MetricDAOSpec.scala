@@ -39,4 +39,12 @@ class MetricDAOSpec extends FlatSpec with Matchers {
     }
 
 
+  "MetricDAO" should "Should aggregate records from elastic-search by tags and date-range" in {
+    val resp = Await.result(dao.aggregateMetrics(metricQuery), 10 seconds)
+    println(resp)
+    resp shouldBe an[Map[String, Double]]
   }
+
+
+
+}

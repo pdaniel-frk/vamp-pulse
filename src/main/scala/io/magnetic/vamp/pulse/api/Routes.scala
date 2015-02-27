@@ -38,6 +38,7 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
               request =>
                 onSuccess(metricDao.getMetrics(request)){
                 case resp: List[Metric] => complete(OK, resp)
+                case resp: Map[String, Double] => complete(OK, resp)
                 case _ => complete(BadRequest)
               }
             }
