@@ -48,7 +48,6 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
       } ~
       path("metric") {
         pathEndOrSingleSlash {
-          get { complete(OK)} ~
           post {
             entity(as[Metric]) {
               request => onSuccess(metricDao.insert(request)){
