@@ -28,21 +28,26 @@ class MetricDAOSpec extends FlatSpec with Matchers {
   implicit val esClient = ESApi.getClient(esConf.getString("cluster.name"), esConf.getString("host"), esConf.getInt("port"))
   val dao = new MetricDAO
 
-  val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
-  val metricQuery = parse(str).extract[MetricQuery]
+
   val decoder = new MetricDecoder()
 
 
   "MetricDAO" should "Should fetch records from elastic-search by tags and date-range" in {
-      val resp = Await.result(dao.getMetrics(metricQuery), 10 seconds)
-      resp shouldBe an[List[Metric]]
-    }
+    val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
+    val metricQuery = parse(str).extract[MetricQuery]
+    val resp = Await.result(dao.getMetrics(metricQuery), 10 seconds)
+    println(resp)
+    resp shouldBe an[List[Metric]]
+
+  }
 
 
   "MetricDAO" should "Should aggregate records from elastic-search by tags and date-range" in {
-    val resp = Await.result(dao.aggregateMetrics(metricQuery), 10 seconds)
-    println(resp)
+    val str = Source.fromURL(getClass.getResource("/metricQueryAgg.json")).mkString
+    val metricQuery = parse(str).extract[MetricQuery]
+    val resp = Await.result(dao.getMetrics(metricQuery), 10 seconds)
     resp shouldBe an[Map[String, Double]]
+
   }
 
 

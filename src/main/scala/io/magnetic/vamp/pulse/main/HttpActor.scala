@@ -13,7 +13,8 @@ class HttpActor(val metricDAO: MetricDAO) extends HttpServiceActor with ActorLog
 
   def exceptionHandler = ExceptionHandler {
     case e: Exception => requestUri { uri =>
-      log.error("Request to {} could not be handled", uri)
+      println(e)
+      log.error(s"Request to {} could not be handled $e", uri)
       complete(InternalServerError)
     }
   }

@@ -5,7 +5,7 @@ import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.source.ObjectSource
 import io.magnetic.vamp.pulse.api.MetricQuery
-import io.magnetic.vamp.pulse.eventstream.producer.Metric
+import io.magnetic.vamp.pulse.eventstream.producer.{ConcreteEvent, Metric}
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 import io.magnetic.vamp.pulse.eventstream.decoder.MetricDecoder
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
@@ -16,14 +16,22 @@ import scala.concurrent.{Future, ExecutionContext}
 
 
 class MetricDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
-  private val entity = "metric"
-  private val ind = "metrics"
+  private val metricEntity = "metric"
+  private val metricIndex = "metrics"
+  private val eventEntity = "event"
+
   private val decoder = new MetricDecoder()
 
   def insert(metric: Metric) = {
     client.execute {
-      index into s"$ind/$entity" doc CustomObjectSource(metric)
-    } await
+      index into s"$metricIndex/$metricEntity" doc CustomObjectSource(metric)
+    }
+  }
+
+  def insert(event: ConcreteEvent) = {
+    client.execute {
+      index into s"$metricIndex/$eventEntity" doc CustomObjectSource(event)
+    }
   }
 
   //TODO: Figure out timestamp issues with elastic: We can only use epoch now + we get epoch as a double from elastic.
@@ -45,7 +53,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
     if(tagNum > 0) queries += termsQuery("tags", metricQuery.tags:_*) minimumShouldMatch(tagNum)
 
     client.execute {
-      search in ind -> entity query {
+      search in metricIndex -> metricEntity query {
         must  (
           queries
         )
@@ -65,7 +73,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
     if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution("and")
 
     client.execute {
-      search  in ind -> entity searchType SearchType.Count aggs {
+      search  in metricIndex -> metricEntity searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
           must(filters)
         } aggs {
@@ -78,6 +86,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
         .getAggregations.get("val_agg").asInstanceOf[InternalAvg]
         .getValue
         //TODO: Wrapper for result types to check corner-cases
+        //TODO: Also might be a good idea not to use java api and map response json directly to whatever case classes we might have
         if(value.compareTo(Double.NaN) == 0) value = 0D
 
         Map("value" -> value)
@@ -85,12 +94,15 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
   }
   
   def createIndex = client.execute {
-      create index ind mappings (
-          entity as (
+      create index metricIndex mappings (
+          metricEntity as (
             "tags" typed StringType,
             "timestamp" typed DateType,
             "value" typed DoubleType
+          ),
+          eventEntity as (
+            "timestamp" typed DateType
           )
       )
-    }
+  }
 }

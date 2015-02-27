@@ -1,0 +1,11 @@
+{
+  "tags" : ["frontend"],
+  "time" : {
+    "from" : "2015-02-26T12:00:51Z",
+    "to" : "2015-02-26T15:36:19Z"
+  },
+
+  "aggregator" : {
+    "type" : "average"
+  }
+}

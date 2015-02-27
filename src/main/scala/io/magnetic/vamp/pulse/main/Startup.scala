@@ -57,11 +57,7 @@ private object Startup extends App {
 
   lazy val materializedMap = metricManagerSource
     .to(Sink.foreach(elem =>  {
-    try {
       metricDao.insert(elem)
-    } catch {
-      case ex: Throwable => logger.error("Unable to write metric to ElasticSearch", ex)
-    }
   })).run()
 
 
