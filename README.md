@@ -26,21 +26,21 @@ Configuration  `src/main/resources/application.conf`
  First, a stream has to be configured
 
 ```
-            SSE
-                stream = {
-                   driver = "sse"
-                   url = "http://10.184.88.251:10001/v1/stats/stream"
-                }
+SSE
+stream = {
+    driver = "sse"
+    url = "http://10.184.88.251:10001/v1/stats/stream"
+}
 
-            Kafka
-                stream = {
-                   driver = "kafka"
-                   url = "localhost:2181"
-                   topic = "metric"
-                   group = "vamp-pulse"
-                   partitions = "1"
-                 }
-                 ```
+Kafka
+    stream = {
+        driver = "kafka"
+            url = "localhost:2181"
+            topic = "metric"
+            group = "vamp-pulse"
+            partitions = "1"
+    }
+```
 
 Storage configuration
                
