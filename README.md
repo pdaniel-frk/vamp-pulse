@@ -17,28 +17,58 @@ What it does?
 
 How to use?
 
-- There is still no artifact available in any of the maven repositories, so you would need:
-    1. JDK 8 and sbt installed
-    2. Check out our vamp-common repository and install it to your local maven repo, README for vamp-common could be found
-    in the corresponding repo
+There is still no artifact available in any of the maven repositories, so you would need:
+1. JDK 8 and sbt installed
+2. Check out our vamp-common repository and install it to your local maven repo, README for vamp-common could be found in the corresponding repo
 
-- Here is a step by step guide to run this tool via sbt:
-    1. Configuration  `src/main/resources/application.conf`
-        a. First, a stream has to be configured
-          - SSE
+Here is a step by step guide to run this tool via sbt:   
+Configuration  `src/main/resources/application.conf`    
+ First, a stream has to be configured
 
-            ```stream = {
-               driver = "sse"
-               url = "http://10.184.88.251:10001/v1/stats/stream"
-              }```
+```
+            SSE
+                stream = {
+                   driver = "sse"
+                   url = "http://10.184.88.251:10001/v1/stats/stream"
+                }
 
-          - Kafka
+            Kafka
+                stream = {
+                   driver = "kafka"
+                   url = "localhost:2181"
+                   topic = "metric"
+                   group = "vamp-pulse"
+                   partitions = "1"
+                 }
+                 ```
 
-            ```  stream = {
-                 driver = "kafka"
-                 url = "localhost:2181"
-                 topic = "metric"
-                 group = "vamp-pulse"
-                 partitions = "1"
-                 } ```
+Storage configuration
+               
+        storage {
+                es {
+                  port = 9300
+                  host = "docker"
 
+                  embedded {
+                    enabled = false // this basically starts an elastic search server on localhost:9300
+                    http = false // this also opens ES rest api to test results, localhost:9200
+                  }
+            
+                  cluster {
+                    name = "elasticsearch"
+                  }
+
+             }
+        }
+
+Configure rest api 
+        
+        http {
+          interface = 0.0.0.0
+          port = 8083
+          response.timeout = 5
+        }
+        
+    
+That's basically it, now you can type `sbt run` in the project root folder and start using the API. Rest API endpoints and their decription could be found in the project wiki.
+        
