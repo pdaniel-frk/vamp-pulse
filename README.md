@@ -46,12 +46,12 @@ Storage configuration
                
         storage {
                 es {
-                  port = 9300
-                  host = "docker"
+                  port = 9200
+                  host = "localhost"
 
                   embedded {
-                    enabled = false // this basically starts an elastic search server on localhost:9300
-                    http = false // this also opens ES rest api to test results, localhost:9200
+                    enabled = true // this basically starts an elastic search server on localhost:9300
+                    http = true // this also opens ES rest api to test results, localhost:9200
                   }
             
                   cluster {
