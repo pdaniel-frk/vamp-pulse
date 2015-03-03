@@ -22,7 +22,7 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
 
   def route: Route = jsonResponse {
     pathPrefix("api" / "v1") {
-      path("metrics") {
+      path("metrics/get") {
         pathEndOrSingleSlash {
           post {
             entity(as[MetricQuery]) {
@@ -36,7 +36,7 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
           }
         }
       } ~
-      path("metric") {
+      path("metrics") {
         pathEndOrSingleSlash {
           post {
             entity(as[Metric]) {
