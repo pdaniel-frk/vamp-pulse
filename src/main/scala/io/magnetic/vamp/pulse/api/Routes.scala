@@ -45,7 +45,7 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
               }
             }
           } ~
-            post {
+          post {
             entity(as[ConcreteEvent]) {
               request => onSuccess(metricDao.insert(request)){
                 case resp => complete(Created, request)
