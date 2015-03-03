@@ -4,11 +4,12 @@ import com.sksamuel.elastic4s.{SearchType, FilterDefinition, QueryDefinition, El
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.source.ObjectSource
-import io.magnetic.vamp.pulse.api.MetricQuery
+import io.magnetic.vamp.pulse.api.{Aggregator, MetricQuery}
 import io.magnetic.vamp.pulse.eventstream.producer.{ConcreteEvent, Metric}
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 import io.magnetic.vamp.pulse.eventstream.decoder.MetricDecoder
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
+import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
 import org.elasticsearch.search.aggregations.metrics.avg.InternalAvg
 
 import scala.collection.mutable.Queue
@@ -72,19 +73,25 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
 
     if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution("and")
 
+
     client.execute {
       search  in metricIndex -> metricEntity searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
           must(filters)
         } aggs {
-          aggregation avg "val_agg" field "value"
+          metricQuery.aggregator.getOrElse(Aggregator("average")).`type` match {
+            case "average" => aggregation avg "val_agg" field "value"
+            case "min" => aggregation min  "val_agg" field "value"
+            case "max" => aggregation max  "val_agg" field "value"
+            case str: String => throw new Exception(s"No such aggregation implemented $str")
+          }
         }
       }
     } map {
       resp => var value: Double = resp.getAggregations
         .get("filter_agg").asInstanceOf[InternalFilter]
-        .getAggregations.get("val_agg").asInstanceOf[InternalAvg]
-        .getValue
+        .getAggregations.get("val_agg").asInstanceOf[InternalNumericMetricsAggregation.SingleValue]
+        .value()
         //TODO: Wrapper for result types to check corner-cases
         //TODO: Also might be a good idea not to use java api and map response json directly to whatever case classes we might have
         if(value.compareTo(Double.NaN) == 0) value = 0D
