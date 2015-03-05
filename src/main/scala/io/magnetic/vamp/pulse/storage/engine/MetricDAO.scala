@@ -7,7 +7,7 @@ import com.sksamuel.elastic4s.source.ObjectSource
 import io.magnetic.vamp.pulse.api.{Aggregator, MetricQuery}
 import io.magnetic.vamp.pulse.eventstream.producer.{ConcreteEvent, Metric}
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
-import io.magnetic.vamp.pulse.eventstream.decoder.MetricDecoder
+import io.magnetic.vamp.pulse.eventstream.decoder.{ConcreteEventDecoder, MetricDecoder}
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
 import org.elasticsearch.search.aggregations.metrics.avg.InternalAvg
@@ -21,7 +21,8 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
   private val metricIndex = "metrics"
   private val eventEntity = "event"
 
-  private val decoder = new MetricDecoder()
+  private val metricDecoder = new MetricDecoder()
+  private val eventDecoder = new ConcreteEventDecoder()
 
   def insert(metric: Metric) = {
     client.execute {
@@ -37,15 +38,32 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
 
   //TODO: Figure out timestamp issues with elastic: We can only use epoch now + we get epoch as a double from elastic.
   def getMetrics(metricQuery: MetricQuery): Future[Any] = {
+    val entity = metricQuery.`type` match {
+      case "metric" => metricEntity
+      case "event"  => eventEntity
+    }
+
     if(metricQuery.aggregator.isEmpty) {
-      getPlainMetrics(metricQuery)
+      getPlainEvents(metricQuery, entity)
     } else {
-      aggregateMetrics(metricQuery)
+      if(entity == eventEntity) throw new Exception("Not implemented")
+      else aggregateMetrics(metricQuery)
     }
   }
 
-  private def getPlainMetrics(metricQuery: MetricQuery) = {
+  def getEvents(metricQuery: MetricQuery): Future[Any] = {
+    getPlainEvents(metricQuery, eventEntity)
+  }
+
+
+
+  private def getPlainEvents(metricQuery: MetricQuery, entity: String) = {
     val tagNum = metricQuery.tags.length
+
+    val decoder = entity match {
+      case e: String if e == eventEntity => eventDecoder
+      case e: String if e == metricEntity => metricDecoder
+    }
 
     val queries: Queue[QueryDefinition] = Queue(
       rangeQuery("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
@@ -54,7 +72,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
     if(tagNum > 0) queries += termsQuery("tags", metricQuery.tags:_*) minimumShouldMatch(tagNum)
 
     client.execute {
-      search in metricIndex -> metricEntity query {
+      search in metricIndex -> entity query {
         must  (
           queries
         )

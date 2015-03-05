@@ -35,7 +35,7 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
             }
           }
         }
-      } ~
+      }  ~
       path("metrics") {
         pathEndOrSingleSlash {
           post {
