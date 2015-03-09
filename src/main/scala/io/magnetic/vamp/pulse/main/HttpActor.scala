@@ -2,14 +2,14 @@ package io.magnetic.vamp.pulse.main
 
 import akka.actor.{ActorLogging, Props}
 import io.magnetic.vamp.pulse.api.Routes
-import io.magnetic.vamp.pulse.storage.engine.MetricDAO
+import io.magnetic.vamp.pulse.storage.engine.EventDAO
 import io.magnetic.vamp_common.notification.NotificationErrorException
 import spray.http.StatusCodes._
 import spray.http.{HttpRequest, HttpResponse, Timedout}
 import spray.routing._
 import spray.util.LoggingContext
 
-class HttpActor(val metricDAO: MetricDAO) extends HttpServiceActor with ActorLogging {
+class HttpActor(val metricDAO: EventDAO) extends HttpServiceActor with ActorLogging {
 
   def exceptionHandler = ExceptionHandler {
     case e: Exception => requestUri { uri =>
@@ -39,5 +39,5 @@ class HttpActor(val metricDAO: MetricDAO) extends HttpServiceActor with ActorLog
 }
 
 object HttpActor {
-  def props(metricDAO: MetricDAO): Props = Props(new HttpActor(metricDAO))
+  def props(metricDAO: EventDAO): Props = Props(new HttpActor(metricDAO))
 }

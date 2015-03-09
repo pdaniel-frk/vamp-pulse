@@ -16,8 +16,8 @@ class EntitiesSpec extends FlatSpec  with Matchers{
 
   "MetricQuery" should "be able to be decoded from json" in {
     val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
-    val metricQuery = parse(str).extract[MetricQuery]
+    val metricQuery = parse(str).extract[EventQuery]
 
-    metricQuery shouldBe an[MetricQuery]
+    metricQuery shouldBe an[EventQuery]
   }
 }

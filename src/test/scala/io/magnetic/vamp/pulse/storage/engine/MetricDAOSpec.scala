@@ -2,7 +2,7 @@ package io.magnetic.vamp.pulse.storage.engine
 
 import scala.collection.JavaConversions._
 import com.typesafe.config.ConfigFactory
-import io.magnetic.vamp.pulse.api.MetricQuery
+import io.magnetic.vamp.pulse.api.EventQuery
 import io.magnetic.vamp.pulse.eventstream.producer.Event
 
 import io.magnetic.vamp.pulse.storage.client.ESApi
@@ -26,7 +26,7 @@ class MetricDAOSpec extends FlatSpec with Matchers {
 
   val esConf = config.getConfig("storage.es")
   implicit val esClient = ESApi.getClient(esConf.getString("cluster.name"), esConf.getString("host"), esConf.getInt("port"))
-  val dao = new MetricDAO
+  val dao = new EventDAO
 
 
   val decoder = new EventDecoder()
@@ -34,7 +34,7 @@ class MetricDAOSpec extends FlatSpec with Matchers {
 
   "MetricDAO" should "Should fetch records from elastic-search by tags and date-range" in {
     val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
-    val metricQuery = parse(str).extract[MetricQuery]
+    val metricQuery = parse(str).extract[EventQuery]
     val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
     println(resp)
     resp shouldBe an[List[Event]]
@@ -44,7 +44,7 @@ class MetricDAOSpec extends FlatSpec with Matchers {
 
   "MetricDAO" should "Should aggregate records from elastic-search by tags and date-range" in {
     val str = Source.fromURL(getClass.getResource("/metricQueryAgg.json")).mkString
-    val metricQuery = parse(str).extract[MetricQuery]
+    val metricQuery = parse(str).extract[EventQuery]
     val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
     resp shouldBe an[Map[String, Double]]
 

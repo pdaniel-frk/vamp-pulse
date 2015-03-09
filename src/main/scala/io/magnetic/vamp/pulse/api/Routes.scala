@@ -1,7 +1,7 @@
 package io.magnetic.vamp.pulse.api
 
 import io.magnetic.vamp.pulse.eventstream.producer.{Event, Metric}
-import io.magnetic.vamp.pulse.storage.engine.MetricDAO
+import io.magnetic.vamp.pulse.storage.engine.EventDAO
 import io.magnetic.vamp.pulse.util.Serializers
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
@@ -15,7 +15,7 @@ import Event._
 
 import scala.concurrent.ExecutionContext
 
-class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
+class Routes(val metricDao: EventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
 
   protected def jsonResponse = respondWithMediaType(`application/json`) | respondWithHeaders(`Cache-Control`(`no-store`), RawHeader("Pragma", "no-cache"))
 
@@ -26,7 +26,7 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
       path("events" / "get") {
         pathEndOrSingleSlash {
           post {
-            entity(as[MetricQuery]) {
+            entity(as[EventQuery]) {
               request =>
                 onSuccess(metricDao.getEvents(request)){
                 case resp: List[Event] => complete(OK, resp.map(_.convertOutput))
@@ -38,7 +38,6 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
         }
       }  ~
       path("events") {
-        // test
         pathEndOrSingleSlash {
           post {
             entity(as[Metric]) {

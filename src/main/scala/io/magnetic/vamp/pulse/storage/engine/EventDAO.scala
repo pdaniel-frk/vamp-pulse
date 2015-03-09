@@ -3,7 +3,7 @@ package io.magnetic.vamp.pulse.storage.engine
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
-import io.magnetic.vamp.pulse.api.{Aggregator, MetricQuery}
+import io.magnetic.vamp.pulse.api.{Aggregator, EventQuery}
 import io.magnetic.vamp.pulse.eventstream.decoder.EventDecoder
 import io.magnetic.vamp.pulse.eventstream.producer.Event
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
@@ -14,7 +14,7 @@ import scala.collection.mutable.Queue
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class MetricDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
+class EventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
   private val eventEntity = "event"
   private val eventIndex = "events"
 
@@ -28,7 +28,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
 
 
   //TODO: Figure out timestamp issues with elastic: We can only use epoch now + we get epoch as a double from elastic.
-  def getEvents(metricQuery: MetricQuery): Future[Any] = {
+  def getEvents(metricQuery: EventQuery): Future[Any] = {
     if(metricQuery.aggregator.isEmpty) {
       getPlainEvents(metricQuery)
     } else {
@@ -37,7 +37,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
   }
   
 
-  private def getPlainEvents(metricQuery: MetricQuery) = {
+  private def getPlainEvents(metricQuery: EventQuery) = {
     val tagNum = metricQuery.tags.length
 
     val queries: Queue[QueryDefinition] = Queue(
@@ -57,7 +57,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
     }
   }
 
-  def getAggregateEvents(metricQuery: MetricQuery) = {
+  def getAggregateEvents(metricQuery: EventQuery) = {
 
     val filters: Queue[FilterDefinition] = Queue(
       rangeFilter("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
