@@ -65,16 +65,18 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
 
     if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution("and")
 
+    val aggregator = metricQuery.aggregator.getOrElse(Aggregator("average"))
+
 
     client.execute {
       search  in eventIndex -> eventEntity searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
           must(filters)
         } aggs {
-          metricQuery.aggregator.getOrElse(Aggregator("average")).`type` match {
-            case "average" => aggregation avg "val_agg" field "value"
-            case "min" => aggregation min  "val_agg" field "value"
-            case "max" => aggregation max  "val_agg" field "value"
+          aggregator.`type` match {
+            case "average" => aggregation avg "val_agg" field aggregator.field
+            case "min" => aggregation min  "val_agg" field aggregator.field
+            case "max" => aggregation max  "val_agg" field aggregator.field
             case str: String => throw new Exception(s"No such aggregation implemented $str")
           }
         }

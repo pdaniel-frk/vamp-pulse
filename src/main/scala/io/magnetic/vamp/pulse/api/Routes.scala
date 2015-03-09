@@ -11,7 +11,7 @@ import spray.http.StatusCodes._
 import spray.httpx.Json4sSupport
 import spray.routing.Directives._
 import spray.routing.Route
-import Metric._
+import Event._
 
 import scala.concurrent.ExecutionContext
 

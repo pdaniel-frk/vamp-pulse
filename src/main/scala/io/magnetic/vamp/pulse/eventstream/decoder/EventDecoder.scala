@@ -8,7 +8,7 @@ import kafka.serializer.{Decoder, StringDecoder}
 import kafka.utils.VerifiableProperties
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import Metric._
+import Event._
 
 import scala.util.Try
 
@@ -24,10 +24,11 @@ class EventDecoder(props: VerifiableProperties = null) extends Decoder[Event]{
   }
   
   def fromString(string: String): Event = {
-    try {
-      Try(metricToEvent(parse(string).extract[Metric])).getOrElse(parse(string).extract[Event])
-    } catch {
+    try
+      Try(parse(string).extract[Metric]: Event).getOrElse(parse(string).extract[Event])
+    catch {
       case ex: MappingException => error(UnableToDecode(ex))
     }
+
   }
 }

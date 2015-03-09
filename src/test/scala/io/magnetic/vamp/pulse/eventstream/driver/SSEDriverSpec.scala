@@ -34,7 +34,6 @@ class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)
     "fetch message from a stream and send it to consumer" in {
       expectMsgClass[Event](classOf[Event])
     }
-    
   }
 
   override protected def before(fun: => Any): Registration = {
