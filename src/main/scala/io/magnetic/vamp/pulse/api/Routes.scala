@@ -1,6 +1,6 @@
 package io.magnetic.vamp.pulse.api
 
-import io.magnetic.vamp.pulse.eventstream.producer.{ConcreteEvent, Metric}
+import io.magnetic.vamp.pulse.eventstream.producer.{Event, Metric}
 import io.magnetic.vamp.pulse.storage.engine.MetricDAO
 import io.magnetic.vamp.pulse.util.Serializers
 import org.json4s._
@@ -11,6 +11,7 @@ import spray.http.StatusCodes._
 import spray.httpx.Json4sSupport
 import spray.routing.Directives._
 import spray.routing.Route
+import Metric._
 
 import scala.concurrent.ExecutionContext
 
@@ -22,13 +23,13 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
 
   def route: Route = jsonResponse {
     pathPrefix("api" / "v1") {
-      path("metrics" / "get") {
+      path("events" / "get") {
         pathEndOrSingleSlash {
           post {
             entity(as[MetricQuery]) {
               request =>
-                onSuccess(metricDao.getMetrics(request)){
-                case resp: List[Metric] => complete(OK, resp)
+                onSuccess(metricDao.getEvents(request)){
+                case resp: List[Event] => complete(OK, resp.map(_.convertOutput))
                 case resp: Map[String, Double] => complete(OK, resp)
                 case _ => complete(BadRequest)
               }
@@ -36,7 +37,8 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
           }
         }
       }  ~
-      path("metrics") {
+      path("events") {
+        // test
         pathEndOrSingleSlash {
           post {
             entity(as[Metric]) {
@@ -46,13 +48,14 @@ class Routes(val metricDao: MetricDAO)(implicit val executionContext: ExecutionC
             }
           } ~
           post {
-            entity(as[ConcreteEvent]) {
-              request => onSuccess(metricDao.insert(request)){
-                case resp => complete(Created, request)
+              entity(as[Event]) {
+                request => onSuccess(metricDao.insert(request)){
+                  case resp => complete(Created, request)
+                }
               }
-            }
           }
         }
+
       }
     }
   }

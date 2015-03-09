@@ -1,10 +1,10 @@
 package io.magnetic.vamp.pulse.util
 
-import java.time.{ZoneId, Instant, OffsetDateTime}
-
-import org.json4s._
-import org.json4s.JsonAST.{JString, JNull}
 import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+import java.time.{Instant, OffsetDateTime, ZoneId}
+
+import org.json4s.JsonAST.{JNull, JString}
+import org.json4s._
 
 class NoneJNullSerializer extends CustomSerializer[Option[_]](format => ({ case JNull => None }, { case None => JNull }))
 class OffsetDateTimeSerializer extends CustomSerializer[OffsetDateTime](

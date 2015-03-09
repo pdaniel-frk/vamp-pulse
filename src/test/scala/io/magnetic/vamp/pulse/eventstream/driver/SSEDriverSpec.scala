@@ -3,7 +3,7 @@ package io.magnetic.vamp.pulse.eventstream.driver
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
-import io.magnetic.vamp.pulse.eventstream.producer.Metric
+import io.magnetic.vamp.pulse.eventstream.producer.Event
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike, BeforeAndAfter}
 import scala.concurrent.duration._
 import org.scalatest.Matchers
@@ -32,7 +32,7 @@ class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)
 
   "SSE Driver" must {
     "fetch message from a stream and send it to consumer" in {
-      expectMsgClass[Metric](classOf[Metric])
+      expectMsgClass[Event](classOf[Event])
     }
     
   }

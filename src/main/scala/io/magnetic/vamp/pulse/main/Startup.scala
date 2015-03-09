@@ -1,24 +1,23 @@
 package io.magnetic.vamp.pulse.main
 
-import akka.actor.{Props, ActorSystem}
+import akka.actor.ActorSystem
 import akka.io.IO
-import akka.util.Timeout
-import com.typesafe.scalalogging.Logger
+import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl.{PropsSource, Sink, Source}
+import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 import io.magnetic.vamp.pulse.eventstream.driver.{KafkaDriver, SseDriver}
 import io.magnetic.vamp.pulse.eventstream.producer._
 import io.magnetic.vamp.pulse.storage.client.ESApi
 import io.magnetic.vamp.pulse.storage.engine.{ESLocalServer, MetricDAO}
 import org.json4s._
 import org.json4s.native.Serialization
-import spray.can.Http
-import scala.concurrent.duration._
-import akka.pattern.ask
-
 import org.slf4j.LoggerFactory
+import spray.can.Http
 
+import scala.concurrent.duration._
 import scala.util.Try
 
 private object Startup extends App {
@@ -36,7 +35,7 @@ private object Startup extends App {
   var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
   val esClusterName = esConf.getString("cluster.name")
 
-  var metricManagerSource: PropsSource[Metric] = null
+  var metricManagerSource: PropsSource[Event] = null
 
 
   esConf.getBoolean("embedded.enabled") match {
@@ -87,7 +86,7 @@ private object Startup extends App {
   def initDriver = streamDriverType match {
     case "sse" =>
       val conf = Map("url" -> config.getString("stream.url"))
-      metricManagerSource = Source[Metric](SSEMetricsPublisher.props)
+      metricManagerSource = Source[Event](SSEMetricsPublisher.props)
       val src = materializedMap.get(metricManagerSource)
       SseDriver.start(conf, src, system)
 
@@ -99,7 +98,7 @@ private object Startup extends App {
         "num" -> config.getString("stream.num")
       )
 
-      metricManagerSource = Source[Metric](KafkaMetricsPublisher.props)
+      metricManagerSource = Source[Event](KafkaMetricsPublisher.props)
       val src = materializedMap.get(metricManagerSource)
 
       KafkaDriver.start(conf, src, system)

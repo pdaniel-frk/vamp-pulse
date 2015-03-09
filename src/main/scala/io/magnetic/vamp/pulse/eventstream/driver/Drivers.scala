@@ -1,18 +1,15 @@
 package io.magnetic.vamp.pulse.eventstream.driver
 
-import akka.actor.{ActorSystem, ActorRef}
+import akka.actor.{ActorRef, ActorSystem}
 import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
-import com.typesafe.config.ConfigFactory
-import io.magnetic.vamp.pulse.eventstream.decoder.MetricDecoder
-import io.magnetic.vamp.pulse.eventstream.producer.{Metric, SSEMetricsPublisher}
-import kafka.serializer.{StringDecoder, DefaultDecoder}
-import org.glassfish.jersey.client.{JerseyClientBuilder, JerseyClient}
-import org.glassfish.jersey.media.sse.{InboundEvent, EventSource}
-import scala.concurrent._
-import ExecutionContext.Implicits.global
+import io.magnetic.vamp.pulse.eventstream.decoder.EventDecoder
+import io.magnetic.vamp.pulse.eventstream.producer.Event
+import kafka.serializer.DefaultDecoder
+import org.glassfish.jersey.client.{JerseyClient, JerseyClientBuilder}
+import org.glassfish.jersey.media.sse.{EventSource, InboundEvent}
 
-
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Future, _}
 
 trait Driver {
   def start(config: Map[String, String], ref: ActorRef, system: ActorSystem)
@@ -27,7 +24,7 @@ object SseDriver extends Driver{
 
   private var eventSource: EventSource = _
   
-  private val decoder = new MetricDecoder()
+  private val decoder = new EventDecoder()
 
   override def start(config: Map[String, String], ref: ActorRef, system: ActorSystem): Unit = {
     Future {
@@ -47,7 +44,7 @@ object SseDriver extends Driver{
 }
 
 object KafkaDriver extends Driver {
-  var consumer: Option[AkkaConsumer[Array[Byte], Metric]] = Option.empty
+  var consumer: Option[AkkaConsumer[Array[Byte], Event]] = Option.empty
   
   override def start(config: Map[String, String], ref: ActorRef, system: ActorSystem): Unit = {
     val consumerProps = AkkaConsumerProps.forSystem(
@@ -57,7 +54,7 @@ object KafkaDriver extends Driver {
       group = config("group"),
       streams = config("partitions").toInt, //one per partition
       keyDecoder = new DefaultDecoder(),
-      msgDecoder = new MetricDecoder(),
+      msgDecoder = new EventDecoder(),
       receiver = ref
     )
     consumer = Option(new AkkaConsumer(consumerProps))

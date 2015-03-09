@@ -2,7 +2,7 @@ package io.magnetic.vamp.pulse.mapper
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.sksamuel.elastic4s.source.{ObjectSource, DocumentSource}
+import com.sksamuel.elastic4s.source.DocumentSource
 
 /**
  * Created by lazycoder on 25/02/15.

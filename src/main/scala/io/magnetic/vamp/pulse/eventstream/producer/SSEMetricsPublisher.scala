@@ -1,6 +1,5 @@
 package io.magnetic.vamp.pulse.eventstream.producer
 
-import akka.actor.Actor.Receive
 import akka.actor.Props
 import akka.stream.actor.ActorPublisher
 
@@ -15,18 +14,17 @@ object SSEMetricsPublisher {
   case object Rejected
 }
 
-class SSEMetricsPublisher extends ActorPublisher[Metric]  {
+class SSEMetricsPublisher extends ActorPublisher[Event]  {
   import akka.stream.actor.ActorPublisherMessage._
-  import SSEMetricsPublisher._
 
   val maxBufSize = 1000
-  var buf = Vector.empty[Metric]
+  var buf = Vector.empty[Event]
 
   override def receive: Receive = {
-    case metric: Metric if buf.size == maxBufSize =>
+    case metric: Event if buf.size == maxBufSize =>
 //      sender ! Rejected
       println(s"Rejected a message due to buffer overflow: $metric")
-    case metric: Metric =>
+    case metric: Event =>
 //      sender ! Accepted
       if(buf.isEmpty && totalDemand > 0)
         onNext(metric)

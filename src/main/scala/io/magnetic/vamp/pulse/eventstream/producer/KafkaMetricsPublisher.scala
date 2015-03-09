@@ -1,6 +1,6 @@
 package io.magnetic.vamp.pulse.eventstream.producer
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.{ActorRef, Props}
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import com.sclasen.akka.kafka.StreamFSM
@@ -12,12 +12,12 @@ object KafkaMetricsPublisher {
   def props: Props = Props[KafkaMetricsPublisher]
 }
 
-class KafkaMetricsPublisher extends ActorPublisher[Metric]{
+class KafkaMetricsPublisher extends ActorPublisher[Event]{
 
-  var buf = Vector.empty[(ActorRef, Metric)]
+  var buf = Vector.empty[(ActorRef, Event)]
 
   override def receive: Receive = {
-    case met: Metric =>
+    case met: Event =>
       if(buf.isEmpty && totalDemand > 0) {
         onNext(met)
         sender() ! StreamFSM.Processed

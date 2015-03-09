@@ -1,3 +1,5 @@
+Revolver.settings
+
 name := """vamp-pulse"""
 
 version := "0.5.0"

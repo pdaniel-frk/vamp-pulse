@@ -1,11 +1,11 @@
 package io.magnetic.vamp.pulse.main
 
-import akka.actor.{Props, ActorLogging}
+import akka.actor.{ActorLogging, Props}
 import io.magnetic.vamp.pulse.api.Routes
 import io.magnetic.vamp.pulse.storage.engine.MetricDAO
 import io.magnetic.vamp_common.notification.NotificationErrorException
 import spray.http.StatusCodes._
-import spray.http.{HttpResponse, HttpRequest, Timedout}
+import spray.http.{HttpRequest, HttpResponse, Timedout}
 import spray.routing._
 import spray.util.LoggingContext
 

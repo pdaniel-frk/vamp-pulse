@@ -7,7 +7,7 @@ import org.json4s.native.Serialization.{ read, write, writePretty }
 
 import org.scalatest.{WordSpec, FlatSpec, WordSpecLike}
 import org.scalatest.Matchers
-import io.magnetic.vamp.pulse.eventstream.producer.Metric
+import io.magnetic.vamp.pulse.eventstream.producer.Event
 import scala.io.Source
 /**
  * Created by lazycoder on 19/02/15.
@@ -15,10 +15,10 @@ import scala.io.Source
 class MetricDecoderSpec extends FlatSpec  with Matchers {
   "MetricDecoder" should "be able to decode valid json into a Metric" in {
 
-    val metricDecoder = new MetricDecoder()
+    val metricDecoder = new EventDecoder()
     val str = Source.fromURL(getClass.getResource("/metric.json")).mkString
     val metric = metricDecoder.fromString(str)
 
-    metric shouldBe an[Metric]
+    metric shouldBe an[Event]
   }
 }

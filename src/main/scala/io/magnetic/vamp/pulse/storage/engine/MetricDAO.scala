@@ -1,69 +1,44 @@
 package io.magnetic.vamp.pulse.storage.engine
 
-import com.sksamuel.elastic4s.{SearchType, FilterDefinition, QueryDefinition, ElasticClient}
-import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.source.ObjectSource
+import com.sksamuel.elastic4s.mappings.FieldType._
+import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
 import io.magnetic.vamp.pulse.api.{Aggregator, MetricQuery}
-import io.magnetic.vamp.pulse.eventstream.producer.{ConcreteEvent, Metric}
+import io.magnetic.vamp.pulse.eventstream.decoder.EventDecoder
+import io.magnetic.vamp.pulse.eventstream.producer.Event
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
-import io.magnetic.vamp.pulse.eventstream.decoder.{ConcreteEventDecoder, MetricDecoder}
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
-import org.elasticsearch.search.aggregations.metrics.avg.InternalAvg
 
 import scala.collection.mutable.Queue
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class MetricDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
-  private val metricEntity = "metric"
-  private val metricIndex = "metrics"
   private val eventEntity = "event"
+  private val eventIndex = "events"
 
-  private val metricDecoder = new MetricDecoder()
-  private val eventDecoder = new ConcreteEventDecoder()
+  private val decoder = new EventDecoder()
 
-  def insert(metric: Metric) = {
+  def insert(metric: Event) = {
     client.execute {
-      index into s"$metricIndex/$metricEntity" doc CustomObjectSource(metric)
+      index into s"$eventIndex/$eventEntity" doc CustomObjectSource(metric)
     }
   }
 
-  def insert(event: ConcreteEvent) = {
-    client.execute {
-      index into s"$metricIndex/$eventEntity" doc CustomObjectSource(event)
-    }
-  }
 
   //TODO: Figure out timestamp issues with elastic: We can only use epoch now + we get epoch as a double from elastic.
-  def getMetrics(metricQuery: MetricQuery): Future[Any] = {
-    val entity = metricQuery.`type` match {
-      case "metric" => metricEntity
-      case "event"  => eventEntity
-    }
-
-    if(metricQuery.aggregator.isEmpty) {
-      getPlainEvents(metricQuery, entity)
-    } else {
-      if(entity == eventEntity) throw new Exception("Not implemented")
-      else aggregateMetrics(metricQuery)
-    }
-  }
-
   def getEvents(metricQuery: MetricQuery): Future[Any] = {
-    getPlainEvents(metricQuery, eventEntity)
-  }
-
-
-
-  private def getPlainEvents(metricQuery: MetricQuery, entity: String) = {
-    val tagNum = metricQuery.tags.length
-
-    val decoder = entity match {
-      case e: String if e == eventEntity => eventDecoder
-      case e: String if e == metricEntity => metricDecoder
+    if(metricQuery.aggregator.isEmpty) {
+      getPlainEvents(metricQuery)
+    } else {
+      getAggregateEvents(metricQuery)
     }
+  }
+  
+
+  private def getPlainEvents(metricQuery: MetricQuery) = {
+    val tagNum = metricQuery.tags.length
 
     val queries: Queue[QueryDefinition] = Queue(
       rangeQuery("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
@@ -72,7 +47,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
     if(tagNum > 0) queries += termsQuery("tags", metricQuery.tags:_*) minimumShouldMatch(tagNum)
 
     client.execute {
-      search in metricIndex -> entity query {
+      search in eventIndex -> eventEntity query {
         must  (
           queries
         )
@@ -82,8 +57,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
     }
   }
 
-  //TODO: Implement different aggregators here, for now we blindly do average.
-  def aggregateMetrics(metricQuery: MetricQuery) = {
+  def getAggregateEvents(metricQuery: MetricQuery) = {
 
     val filters: Queue[FilterDefinition] = Queue(
       rangeFilter("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
@@ -93,7 +67,7 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
 
 
     client.execute {
-      search  in metricIndex -> metricEntity searchType SearchType.Count aggs {
+      search  in eventIndex -> eventEntity searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
           must(filters)
         } aggs {
@@ -119,14 +93,11 @@ class MetricDAO(implicit client: ElasticClient, implicit val executionContext: E
   }
   
   def createIndex = client.execute {
-      create index metricIndex mappings (
-          metricEntity as (
+      create index eventIndex mappings (
+          eventEntity as (
             "tags" typed StringType,
             "timestamp" typed DateType,
-            "value" typed DoubleType
-          ),
-          eventEntity as (
-            "timestamp" typed DateType
+            "value" typed ObjectType
           )
       )
   }

@@ -1,14 +1,12 @@
 package io.magnetic.vamp.pulse.storage.engine
 
 import java.nio.file.Files
+
 import com.typesafe.scalalogging.Logger
 import org.apache.commons.io.FileUtils
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.node.NodeBuilder._
 import org.slf4j.LoggerFactory
-
-import scala.util.Try
 
 
 /**
