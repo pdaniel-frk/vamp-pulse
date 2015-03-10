@@ -2,6 +2,7 @@ package io.magnetic.vamp.pulse.eventstream.producer
 
 import akka.actor.Props
 import akka.stream.actor.ActorPublisher
+import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
 
 import scala.annotation.tailrec
 
@@ -14,6 +15,12 @@ object SSEMetricsPublisher {
   case object Rejected
 }
 
+/**
+ * This class is a publisher of ElasticEvents from SSE stream
+ * It does not have a push-back, since SSE is not something
+ * that fits the paradigm, therefore it just drops events
+ * if they are not being processed in time and logs them
+ */
 class SSEMetricsPublisher extends ActorPublisher[ElasticEvent]  {
   import akka.stream.actor.ActorPublisherMessage._
 
@@ -22,10 +29,8 @@ class SSEMetricsPublisher extends ActorPublisher[ElasticEvent]  {
 
   override def receive: Receive = {
     case event: ElasticEvent if buf.size == maxBufSize =>
-//      sender ! Rejected
       println(s"Rejected a message due to buffer overflow: $event")
     case event: ElasticEvent =>
-//      sender ! Accepted
       if(buf.isEmpty && totalDemand > 0)
         onNext(event)
       else {

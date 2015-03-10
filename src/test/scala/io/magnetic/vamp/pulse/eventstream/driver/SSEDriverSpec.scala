@@ -3,7 +3,7 @@ package io.magnetic.vamp.pulse.eventstream.driver
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
-import io.magnetic.vamp.pulse.eventstream.producer.Event
+import io.magnetic.vamp.pulse.eventstream.message.Event
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike, BeforeAndAfter}
 import scala.concurrent.duration._
 import org.scalatest.Matchers

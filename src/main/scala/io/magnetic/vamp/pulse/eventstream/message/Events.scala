@@ -1,4 +1,4 @@
-package io.magnetic.vamp.pulse.eventstream.producer
+package io.magnetic.vamp.pulse.eventstream.message
 
 import java.time.OffsetDateTime
 
@@ -9,7 +9,7 @@ object EventType extends Enumeration {
   type EventType = Value
   val Numeric, Custom = Value
 }
-import EventType._
+import io.magnetic.vamp.pulse.eventstream.message.EventType._
 
 class EventTypeRef extends TypeReference[EventType.type]
 

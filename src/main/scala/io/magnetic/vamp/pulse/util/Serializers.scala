@@ -2,10 +2,9 @@ package io.magnetic.vamp.pulse.util
 
 import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
 import java.time.{Instant, OffsetDateTime, ZoneId}
-
-import io.magnetic.vamp.pulse.eventstream.producer.EventType
-import io.magnetic.vamp.pulse.eventstream.producer.EventType.EventType
-import io.magnetic.vamp.pulse.eventstream.producer.EventType.EventType
+import io.magnetic.vamp.pulse.eventstream.message.EventType
+import EventType.EventType
+import EventType.EventType
 import org.json4s.JsonAST.{JNull, JString}
 import org.json4s._
 

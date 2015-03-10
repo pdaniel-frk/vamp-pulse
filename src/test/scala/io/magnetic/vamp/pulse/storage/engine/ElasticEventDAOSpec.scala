@@ -1,9 +1,10 @@
 package io.magnetic.vamp.pulse.storage.engine
 
+import io.magnetic.vamp.pulse.eventstream.message.Event
+
 import scala.collection.JavaConversions._
 import com.typesafe.config.ConfigFactory
 import io.magnetic.vamp.pulse.api.EventQuery
-import io.magnetic.vamp.pulse.eventstream.producer.Event
 
 import io.magnetic.vamp.pulse.storage.client.ESApi
 import io.magnetic.vamp.pulse.util.Serializers

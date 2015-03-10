@@ -3,7 +3,8 @@ package io.magnetic.vamp.pulse.eventstream.driver
 import akka.actor.{ActorRef, ActorSystem}
 import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
 import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
-import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event}
+import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
+
 import kafka.serializer.DefaultDecoder
 import org.glassfish.jersey.client.{JerseyClient, JerseyClientBuilder}
 import org.glassfish.jersey.media.sse.{EventSource, InboundEvent}

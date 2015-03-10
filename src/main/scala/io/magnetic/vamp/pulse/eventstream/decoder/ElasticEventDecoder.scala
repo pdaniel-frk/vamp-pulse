@@ -1,8 +1,9 @@
 package io.magnetic.vamp.pulse.eventstream.decoder
 
 import io.magnetic.vamp.pulse.configuration.DefaultNotification._
+import io.magnetic.vamp.pulse.eventstream.message.{Event, ElasticEvent, Metric}
 import io.magnetic.vamp.pulse.eventstream.notification.UnableToDecode
-import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event, Metric}
+import io.magnetic.vamp.pulse.eventstream.message.Event
 import io.magnetic.vamp.pulse.util.Serializers
 import kafka.serializer.{Decoder, StringDecoder}
 import kafka.utils.VerifiableProperties

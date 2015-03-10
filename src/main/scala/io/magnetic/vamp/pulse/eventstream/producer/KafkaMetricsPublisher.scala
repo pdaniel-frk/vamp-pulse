@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, Props}
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import com.sclasen.akka.kafka.StreamFSM
+import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
 
 import scala.annotation.tailrec
 

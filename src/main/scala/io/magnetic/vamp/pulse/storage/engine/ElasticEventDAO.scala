@@ -5,7 +5,8 @@ import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
 import io.magnetic.vamp.pulse.api.{Aggregator, EventQuery}
 import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
-import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event}
+import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
+import io.magnetic.vamp.pulse.eventstream.message.Event
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 import io.magnetic.vamp.pulse.util.Serializers
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter

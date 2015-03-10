@@ -9,6 +9,7 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 import io.magnetic.vamp.pulse.eventstream.driver.{KafkaDriver, SseDriver}
+import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
 import io.magnetic.vamp.pulse.eventstream.producer._
 import io.magnetic.vamp.pulse.storage.client.ESApi
 import io.magnetic.vamp.pulse.storage.engine.{ESLocalServer, ElasticEventDAO}
