@@ -4,23 +4,30 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
 import io.magnetic.vamp.pulse.api.{Aggregator, EventQuery}
-import io.magnetic.vamp.pulse.eventstream.decoder.EventDecoder
-import io.magnetic.vamp.pulse.eventstream.producer.Event
+import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
+import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event}
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
+import io.magnetic.vamp.pulse.util.Serializers
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
 
 import scala.collection.mutable.Queue
 import scala.concurrent.{ExecutionContext, Future}
 
+import org.json4s._
+import org.json4s.native.JsonMethods._
+
 
 class EventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
   private val eventEntity = "event"
   private val eventIndex = "events"
 
-  private val decoder = new EventDecoder()
+  implicit val formats = Serializers.formats
 
-  def insert(metric: Event) = {
+
+  private val decoder = new ElasticEventDecoder()
+
+  def insert(metric: ElasticEvent) = {
     client.execute {
       index into s"$eventIndex/$eventEntity" doc CustomObjectSource(metric)
     }
@@ -53,7 +60,7 @@ class EventDAO(implicit client: ElasticClient, implicit val executionContext: Ex
         )
       } start 0 limit 30
     } map {
-      resp => List(resp.getHits.hits().map((hit) =>  decoder.fromString(hit.sourceAsString())): _*)
+      resp => List(resp.getHits.hits().map((hit) =>  parse(hit.sourceAsString()).extract[ElasticEvent]): _*)
     }
   }
 

@@ -17,6 +17,7 @@ import org.json4s.native.Serialization
 import org.slf4j.LoggerFactory
 import spray.can.Http
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
@@ -35,7 +36,7 @@ private object Startup extends App {
   var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
   val esClusterName = esConf.getString("cluster.name")
 
-  var metricManagerSource: PropsSource[Event] = null
+  var metricManagerSource: PropsSource[ElasticEvent] = null
 
 
   esConf.getBoolean("embedded.enabled") match {
@@ -86,7 +87,7 @@ private object Startup extends App {
   def initDriver = streamDriverType match {
     case "sse" =>
       val conf = Map("url" -> config.getString("stream.url"))
-      metricManagerSource = Source[Event](SSEMetricsPublisher.props)
+      metricManagerSource = Source[ElasticEvent](SSEMetricsPublisher.props)
       val src = materializedMap.get(metricManagerSource)
       SseDriver.start(conf, src, system)
 
@@ -98,7 +99,7 @@ private object Startup extends App {
         "num" -> config.getString("stream.num")
       )
 
-      metricManagerSource = Source[Event](KafkaMetricsPublisher.props)
+      metricManagerSource = Source[ElasticEvent](KafkaMetricsPublisher.props)
       val src = materializedMap.get(metricManagerSource)
 
       KafkaDriver.start(conf, src, system)

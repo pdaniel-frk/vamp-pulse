@@ -2,30 +2,28 @@ package io.magnetic.vamp.pulse.eventstream.decoder
 
 import io.magnetic.vamp.pulse.configuration.DefaultNotification._
 import io.magnetic.vamp.pulse.eventstream.notification.UnableToDecode
-import io.magnetic.vamp.pulse.eventstream.producer.{Event, Metric}
+import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event, Metric}
 import io.magnetic.vamp.pulse.util.Serializers
 import kafka.serializer.{Decoder, StringDecoder}
 import kafka.utils.VerifiableProperties
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import Event._
+import ElasticEvent._
 
 import scala.util.Try
 
-/**
- * Created by lazycoder on 19/02/15.
- */
-class EventDecoder(props: VerifiableProperties = null) extends Decoder[Event]{
+
+class ElasticEventDecoder(props: VerifiableProperties = null) extends Decoder[ElasticEvent]{
   implicit val formats = Serializers.formats
   val stringDecoder = new StringDecoder(props)
   
-  override def fromBytes(bytes: Array[Byte]): Event = {
+  override def fromBytes(bytes: Array[Byte]): ElasticEvent = {
     fromString(stringDecoder.fromBytes(bytes))
   }
   
-  def fromString(string: String): Event = {
+  def fromString(string: String): ElasticEvent = {
     try
-      Try(parse(string).extract[Metric]: Event).getOrElse(parse(string).extract[Event])
+      Try(parse(string).extract[Metric]: ElasticEvent).getOrElse(parse(string).extract[Event])
     catch {
       case ex: MappingException => error(UnableToDecode(ex))
     }

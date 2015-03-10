@@ -1,6 +1,6 @@
 package io.magnetic.vamp.pulse.api
 
-import io.magnetic.vamp.pulse.eventstream.producer.{Event, Metric}
+import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event, Metric}
 import io.magnetic.vamp.pulse.storage.engine.EventDAO
 import io.magnetic.vamp.pulse.util.Serializers
 import org.json4s._
@@ -11,7 +11,7 @@ import spray.http.StatusCodes._
 import spray.httpx.Json4sSupport
 import spray.routing.Directives._
 import spray.routing.Route
-import Event._
+import ElasticEvent._
 
 import scala.concurrent.ExecutionContext
 
@@ -29,7 +29,7 @@ class Routes(val metricDao: EventDAO)(implicit val executionContext: ExecutionCo
             entity(as[EventQuery]) {
               request =>
                 onSuccess(metricDao.getEvents(request)){
-                case resp: List[Event] => complete(OK, resp.map(_.convertOutput))
+                case resp: List[ElasticEvent] => complete(OK, resp.map(_.convertOutput))
                 case resp: Map[String, Double] => complete(OK, resp)
                 case _ => complete(BadRequest)
               }

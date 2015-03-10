@@ -12,17 +12,17 @@ object KafkaMetricsPublisher {
   def props: Props = Props[KafkaMetricsPublisher]
 }
 
-class KafkaMetricsPublisher extends ActorPublisher[Event]{
+class KafkaMetricsPublisher extends ActorPublisher[ElasticEvent]{
 
-  var buf = Vector.empty[(ActorRef, Event)]
+  var buf = Vector.empty[(ActorRef, ElasticEvent)]
 
   override def receive: Receive = {
-    case met: Event =>
+    case event: ElasticEvent =>
       if(buf.isEmpty && totalDemand > 0) {
-        onNext(met)
+        onNext(event)
         sender() ! StreamFSM.Processed
       } else {
-        buf :+= (sender(), met)
+        buf :+= (sender(), event)
         deliverBuf()
       }
     case Request(_) => deliverBuf()

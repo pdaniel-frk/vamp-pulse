@@ -14,22 +14,22 @@ object SSEMetricsPublisher {
   case object Rejected
 }
 
-class SSEMetricsPublisher extends ActorPublisher[Event]  {
+class SSEMetricsPublisher extends ActorPublisher[ElasticEvent]  {
   import akka.stream.actor.ActorPublisherMessage._
 
   val maxBufSize = 1000
-  var buf = Vector.empty[Event]
+  var buf = Vector.empty[ElasticEvent]
 
   override def receive: Receive = {
-    case metric: Event if buf.size == maxBufSize =>
+    case event: ElasticEvent if buf.size == maxBufSize =>
 //      sender ! Rejected
-      println(s"Rejected a message due to buffer overflow: $metric")
-    case metric: Event =>
+      println(s"Rejected a message due to buffer overflow: $event")
+    case event: ElasticEvent =>
 //      sender ! Accepted
       if(buf.isEmpty && totalDemand > 0)
-        onNext(metric)
+        onNext(event)
       else {
-        buf :+= metric
+        buf :+= event
         deliverBuf()
       }
     case Request(_) => deliverBuf()

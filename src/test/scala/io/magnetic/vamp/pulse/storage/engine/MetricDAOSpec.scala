@@ -15,7 +15,7 @@ import org.json4s.native.JsonMethods._
 
 import scala.concurrent.Await
 import scala.io.Source
-import io.magnetic.vamp.pulse.eventstream.decoder.EventDecoder
+import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
@@ -29,7 +29,7 @@ class MetricDAOSpec extends FlatSpec with Matchers {
   val dao = new EventDAO
 
 
-  val decoder = new EventDecoder()
+  val decoder = new ElasticEventDecoder()
 
 
   "MetricDAO" should "Should fetch records from elastic-search by tags and date-range" in {
