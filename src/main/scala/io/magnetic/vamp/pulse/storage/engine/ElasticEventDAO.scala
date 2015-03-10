@@ -20,7 +20,7 @@ import org.json4s.native.JsonMethods._
 final case class ResultList(list: List[ElasticEvent])
 final case class AggregationResult(map: Map[String, Double])
 
-class EventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
+class ElasticEventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
   private val eventEntity = "event"
   private val eventIndex = "events"
 

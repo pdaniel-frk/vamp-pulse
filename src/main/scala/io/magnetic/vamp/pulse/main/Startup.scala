@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.Logger
 import io.magnetic.vamp.pulse.eventstream.driver.{KafkaDriver, SseDriver}
 import io.magnetic.vamp.pulse.eventstream.producer._
 import io.magnetic.vamp.pulse.storage.client.ESApi
-import io.magnetic.vamp.pulse.storage.engine.{ESLocalServer, EventDAO}
+import io.magnetic.vamp.pulse.storage.engine.{ESLocalServer, ElasticEventDAO}
 import org.json4s._
 import org.json4s.native.Serialization
 import org.slf4j.LoggerFactory
@@ -49,7 +49,7 @@ private object Startup extends App {
 
   implicit val esClient = ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
 
-  val metricDao = new EventDAO
+  val metricDao = new ElasticEventDAO
 
   metricDao.createIndex
 

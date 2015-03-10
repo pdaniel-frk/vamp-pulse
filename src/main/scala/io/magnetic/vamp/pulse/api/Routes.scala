@@ -1,7 +1,7 @@
 package io.magnetic.vamp.pulse.api
 
 import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event, Metric}
-import io.magnetic.vamp.pulse.storage.engine.{AggregationResult, ResultList, EventDAO}
+import io.magnetic.vamp.pulse.storage.engine.{AggregationResult, ResultList, ElasticEventDAO}
 import io.magnetic.vamp.pulse.util.Serializers
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
@@ -15,7 +15,7 @@ import ElasticEvent._
 
 import scala.concurrent.ExecutionContext
 
-class Routes(val metricDao: EventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
+class Routes(val metricDao: ElasticEventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
 
   protected def jsonResponse = respondWithMediaType(`application/json`) | respondWithHeaders(`Cache-Control`(`no-store`), RawHeader("Pragma", "no-cache"))
 

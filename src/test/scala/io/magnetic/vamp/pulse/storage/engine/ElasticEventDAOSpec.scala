@@ -19,14 +19,14 @@ import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-class MetricDAOSpec extends FlatSpec with Matchers {
+class ElasticEventDAOSpec extends FlatSpec with Matchers {
   implicit val formats = Serializers.formats
 
   val config = ConfigFactory.load()
 
   val esConf = config.getConfig("storage.es")
   implicit val esClient = ESApi.getClient(esConf.getString("cluster.name"), esConf.getString("host"), esConf.getInt("port"))
-  val dao = new EventDAO
+  val dao = new ElasticEventDAO
 
 
   val decoder = new ElasticEventDecoder()
