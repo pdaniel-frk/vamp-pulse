@@ -86,23 +86,12 @@ private object Startup extends App {
 
   def initDriver = streamDriverType match {
     case "sse" =>
-      val conf = Map("url" -> config.getString("stream.url"))
       metricManagerSource = Source[ElasticEvent](SSEMetricsPublisher.props)
-      val src = materializedMap.get(metricManagerSource)
-      SseDriver.start(conf, src, system)
+      SseDriver.start(materializedMap.get(metricManagerSource), system)
 
     case "kafka" =>
-      val conf = Map(
-        "url" -> config.getString("stream.url"),
-        "topic" -> config.getString("stream.topic"),
-        "group" -> config.getString("stream.group"),
-        "num" -> config.getString("stream.num")
-      )
-
       metricManagerSource = Source[ElasticEvent](KafkaMetricsPublisher.props)
-      val src = materializedMap.get(metricManagerSource)
-
-      KafkaDriver.start(conf, src, system)
+      KafkaDriver.start(materializedMap.get(metricManagerSource), system)
 
     case _ => logger.error(s"Driver $streamDriverType not found "); system.shutdown()
 

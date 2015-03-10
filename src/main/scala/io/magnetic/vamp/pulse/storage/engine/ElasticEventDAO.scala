@@ -4,7 +4,6 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
 import io.magnetic.vamp.pulse.api.{Aggregator, EventQuery}
-import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 import io.magnetic.vamp.pulse.util.Serializers
@@ -24,7 +23,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   private val eventIndex = "events"
 
   implicit val formats = Serializers.formats
-  
+
   def insert(metric: ElasticEvent) = {
     client.execute {
       index into s"$eventIndex/$eventEntity" doc CustomObjectSource(metric)
