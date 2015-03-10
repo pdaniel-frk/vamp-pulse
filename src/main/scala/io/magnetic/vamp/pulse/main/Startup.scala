@@ -8,7 +8,7 @@ import akka.stream.scaladsl.{PropsSource, Sink, Source}
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import io.magnetic.vamp.pulse.eventstream.driver.{KafkaDriver, SseDriver}
+import io.magnetic.vamp.pulse.eventstream.driver.{Driver, KafkaDriver, SseDriver}
 import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
 import io.magnetic.vamp.pulse.eventstream.producer._
 import io.magnetic.vamp.pulse.storage.client.ESApi
@@ -36,7 +36,7 @@ private object Startup extends App {
   var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
   val esClusterName = esConf.getString("cluster.name")
 
-  var metricManagerSource: PropsSource[ElasticEvent] = null
+
 
 
   esConf.getBoolean("embedded.enabled") match {
@@ -53,13 +53,14 @@ private object Startup extends App {
 
   metricDao.createIndex
 
-  initDriver
+  val (metricManagerSource: PropsSource[ElasticEvent], driver: Driver) = initSourceAndDriver
 
-  lazy val materializedMap = metricManagerSource
+  val materializedMap = metricManagerSource
     .to(Sink.foreach(elem =>  {
       metricDao.insert(elem)
   })).run()
 
+  driver.start(materializedMap.get(metricManagerSource), system)
 
   httpListen
 
@@ -84,18 +85,15 @@ private object Startup extends App {
     IO(Http)(system) ? Http.Bind(server, interface, port)
   }
 
-  def initDriver = streamDriverType match {
+  def initSourceAndDriver = streamDriverType match {
     case "sse" =>
-      metricManagerSource = Source[ElasticEvent](SSEMetricsPublisher.props)
-      SseDriver.start(materializedMap.get(metricManagerSource), system)
+      (Source[ElasticEvent](SSEMetricsPublisher.props), SseDriver)
 
     case "kafka" =>
-      metricManagerSource = Source[ElasticEvent](KafkaMetricsPublisher.props)
-      KafkaDriver.start(materializedMap.get(metricManagerSource), system)
+      (Source[ElasticEvent](KafkaMetricsPublisher.props), KafkaDriver)
 
-    case _ => logger.error(s"Driver $streamDriverType not found "); system.shutdown()
-
-
+    case _ => throw new Exception(s"Driver $streamDriverType not found")
   }
+
 
 }
