@@ -2,9 +2,8 @@ package io.magnetic.vamp.pulse.api
 
 
 import io.magnetic.vamp.pulse.util.Serializers
-import org.scalatest.{Matchers, FlatSpec}
 import org.json4s.native.JsonMethods._
-
+import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source
 

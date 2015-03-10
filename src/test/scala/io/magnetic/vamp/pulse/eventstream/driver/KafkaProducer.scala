@@ -1,15 +1,9 @@
 package io.magnetic.vamp.pulse.eventstream.driver
 
-import kafka.producer.{Producer, ProducerConfig, KeyedMessage}
-
-import scala.collection.JavaConversions._
-import joptsimple._
 import java.util.{Properties, UUID}
-import java.io._
-import kafka.common._
+
 import kafka.message._
-import kafka.serializer._
-import java.util.Properties
+import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more

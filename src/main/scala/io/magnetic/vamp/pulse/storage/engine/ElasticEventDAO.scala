@@ -6,17 +6,15 @@ import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition,
 import io.magnetic.vamp.pulse.api.{Aggregator, EventQuery}
 import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
-import io.magnetic.vamp.pulse.eventstream.message.Event
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 import io.magnetic.vamp.pulse.util.Serializers
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 import scala.collection.mutable.Queue
 import scala.concurrent.{ExecutionContext, Future}
-
-import org.json4s._
-import org.json4s.native.JsonMethods._
 
 final case class ResultList(list: List[ElasticEvent])
 final case class AggregationResult(map: Map[String, Double])
@@ -26,10 +24,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   private val eventIndex = "events"
 
   implicit val formats = Serializers.formats
-
-
-  private val decoder = new ElasticEventDecoder()
-
+  
   def insert(metric: ElasticEvent) = {
     client.execute {
       index into s"$eventIndex/$eventEntity" doc CustomObjectSource(metric)

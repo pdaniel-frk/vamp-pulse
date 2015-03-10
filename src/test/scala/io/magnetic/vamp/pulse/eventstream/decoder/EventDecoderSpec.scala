@@ -1,14 +1,8 @@
 package io.magnetic.vamp.pulse.eventstream.decoder
 
-import java.time.{OffsetDateTime, Instant, LocalDateTime, LocalDate}
-
 import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
-import org.json4s.native.Serialization.{ read, write, writePretty }
+import org.scalatest.{FlatSpec, Matchers}
 
-
-import org.scalatest.{WordSpec, FlatSpec, WordSpecLike}
-import org.scalatest.Matchers
-import io.magnetic.vamp.pulse.eventstream.producer.Event
 import scala.io.Source
 
 class EventDecoderSpec extends FlatSpec  with Matchers {

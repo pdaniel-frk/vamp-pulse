@@ -1,23 +1,18 @@
 package io.magnetic.vamp.pulse.storage.engine
 
-import io.magnetic.vamp.pulse.eventstream.message.Event
-
-import scala.collection.JavaConversions._
 import com.typesafe.config.ConfigFactory
 import io.magnetic.vamp.pulse.api.EventQuery
-
+import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
+import io.magnetic.vamp.pulse.eventstream.message.Event
 import io.magnetic.vamp.pulse.storage.client.ESApi
 import io.magnetic.vamp.pulse.util.Serializers
-import org.elasticsearch.action.search.SearchResponse
-
-import org.scalatest.{Matchers, FlatSpec}
-import scala.concurrent.duration._
 import org.json4s.native.JsonMethods._
+import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.Await
-import scala.io.Source
-import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.io.Source
 
 
 class ElasticEventDAOSpec extends FlatSpec with Matchers {
