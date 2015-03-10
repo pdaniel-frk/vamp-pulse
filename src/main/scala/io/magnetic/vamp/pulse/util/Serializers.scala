@@ -10,7 +10,7 @@ import org.json4s.JsonAST.{JNull, JString}
 import org.json4s._
 
 class NoneJNullSerializer extends CustomSerializer[Option[_]](format => ({ case JNull => None }, { case None => JNull }))
-class EnumerationSerializer extends CustomSerializer[EventType](format => ({ case JString(s) => EventType.withName(s) }, { case value: EventType.Value => JString(value.toString) }))
+class EnumerationSerializer extends CustomSerializer[EventType](format => ({ case JString(s) => EventType.withName(s) }, { case value: EventType => JString(value.toString) }))
 
 class OffsetDateTimeSerializer extends CustomSerializer[OffsetDateTime](
    format => (
