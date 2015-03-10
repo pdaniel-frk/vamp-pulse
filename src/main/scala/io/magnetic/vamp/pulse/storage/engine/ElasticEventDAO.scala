@@ -37,7 +37,6 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   }
 
 
-  //TODO: Figure out timestamp issues with elastic: We can only use epoch now + we get epoch as a double from elastic.
   def getEvents(metricQuery: EventQuery): Future[Any] = {
     if(metricQuery.aggregator.isEmpty) {
       getPlainEvents(metricQuery)
