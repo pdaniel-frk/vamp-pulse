@@ -1,7 +1,7 @@
 package io.magnetic.vamp.pulse.api
 
 import io.magnetic.vamp.pulse.eventstream.producer.{ElasticEvent, Event, Metric}
-import io.magnetic.vamp.pulse.storage.engine.EventDAO
+import io.magnetic.vamp.pulse.storage.engine.{AggregationResult, ResultList, EventDAO}
 import io.magnetic.vamp.pulse.util.Serializers
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
@@ -29,8 +29,8 @@ class Routes(val metricDao: EventDAO)(implicit val executionContext: ExecutionCo
             entity(as[EventQuery]) {
               request =>
                 onSuccess(metricDao.getEvents(request)){
-                case resp: List[ElasticEvent] => complete(OK, resp.map(_.convertOutput))
-                case resp: Map[String, Double] => complete(OK, resp)
+                case ResultList(list) => complete(OK, list.map(_.convertOutput))
+                case AggregationResult(map) => complete(OK, map)
                 case _ => complete(BadRequest)
               }
             }

@@ -17,6 +17,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
+final case class ResultList(list: List[ElasticEvent])
+final case class AggregationResult(map: Map[String, Double])
 
 class EventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
   private val eventEntity = "event"
@@ -60,7 +62,7 @@ class EventDAO(implicit client: ElasticClient, implicit val executionContext: Ex
         )
       } start 0 limit 30
     } map {
-      resp => List(resp.getHits.hits().map((hit) =>  parse(hit.sourceAsString()).extract[ElasticEvent]): _*)
+      resp => ResultList(List(resp.getHits.hits().map((hit) =>  parse(hit.sourceAsString()).extract[ElasticEvent]): _*))
     }
   }
 
@@ -97,7 +99,7 @@ class EventDAO(implicit client: ElasticClient, implicit val executionContext: Ex
         //TODO: Also might be a good idea not to use java api and map response json directly to whatever case classes we might have
         if(value.compareTo(Double.NaN) == 0) value = 0D
 
-        Map("value" -> value)
+        AggregationResult(Map("value" -> value))
     }
   }
   
