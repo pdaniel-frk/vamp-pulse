@@ -19,15 +19,10 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfter with 
 
   "Kafka Driver" must {
     "fetch message from a stream and send it to consumer" in {
-      val conf = Map(
-        "url" -> config.getString("stream.kafka_url"),
-        "topic" -> config.getString("stream.topic"),
-        "group" -> config.getString("stream.group"),
-        "num" -> config.getString("stream.num")
-      )
-      val producer = new KafkaProducer(conf("topic"), config.getString("stream.kafka_broker"))
 
-      KafkaDriver.start(conf, self, _system)
+      val producer = new KafkaProducer(config.getString("stream.topic"), config.getString("stream.kafka_broker"))
+
+      KafkaDriver.start(self, _system)
       producer.send("test")
       expectMsg("test")
       KafkaDriver.stop()

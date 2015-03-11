@@ -3,7 +3,7 @@ package io.magnetic.vamp.pulse.eventstream.driver
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
-import io.magnetic.vamp.pulse.eventstream.message.Event
+import io.magnetic.vamp.pulse.eventstream.message.{ElasticEvent, Event}
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Matchers, WordSpecLike}
 
 
@@ -15,10 +15,7 @@ class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)
 
 
   override protected def beforeAll(): Registration = {
-    val conf = Map(
-      "url" -> config.getString("stream.sse_url")
-    )
-    SseDriver.start(conf, self, _system)
+    SseDriver.start(self, _system)
   }
 
   override protected def afterAll(): Registration = {
@@ -30,7 +27,7 @@ class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)
 
   "SSE Driver" must {
     "fetch message from a stream and send it to consumer" in {
-      expectMsgClass[Event](classOf[Event])
+      expectMsgClass[ElasticEvent](classOf[ElasticEvent])
     }
   }
 

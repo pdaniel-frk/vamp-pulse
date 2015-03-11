@@ -19,17 +19,16 @@ class EventTypeRef extends TypeReference[EventType.type]
 
 final case class Metric(tags: Seq[String], value: Double, timestamp: OffsetDateTime = OffsetDateTime.now())
 
-final case class DoubleContainer(value: Double)
-
 final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime, properties: EventProperties){
   def convertOutput = {
     this match {
       case ElasticEvent(_, v: Map[_, _], _, props)
         if props.`type` == EventType.Numeric =>
-        Try(Metric(tags, v.asInstanceOf[Map[String, Double]]("value"), timestamp)).getOrElse(Metric(tags, 0D, timestamp))
+          Try(Metric(tags, v.asInstanceOf[Map[String, Double]]("value"), timestamp)).getOrElse(Metric(tags, 0D, timestamp))
 
       case ElasticEvent(_, _, _, props) if props.`type` == EventType.Custom => Event(tags, value, timestamp)
 
+      // Figure out what to do in this case from a user perspective. Should we filter these out, throw InternalServerError or else
       case _ => println("Unable to determine the type of event")
     }
   }
@@ -43,7 +42,7 @@ final case class Event(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTi
 
 object ElasticEvent {
   implicit def metricToElasticEvent(metric: Metric): ElasticEvent = {
-    ElasticEvent(metric.tags, DoubleContainer(metric.value), metric.timestamp, EventProperties(EventType.Numeric))
+    ElasticEvent(metric.tags, Map("value" -> metric.value), metric.timestamp, EventProperties(EventType.Numeric))
   }
 
   implicit def eventToElasticEvent(event: Event): ElasticEvent = {
