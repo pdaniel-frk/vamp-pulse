@@ -3,7 +3,7 @@ package io.magnetic.vamp.pulse.storage.engine
 import com.typesafe.config.ConfigFactory
 import io.magnetic.vamp.pulse.api.EventQuery
 import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
-import io.magnetic.vamp.pulse.eventstream.message.Event
+import io.magnetic.vamp.pulse.eventstream.message.{ElasticEvent, Event}
 import io.magnetic.vamp.pulse.storage.client.ESApi
 import io.magnetic.vamp.pulse.util.Serializers
 import org.json4s.native.JsonMethods._
@@ -32,8 +32,8 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers {
     val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
     val metricQuery = parse(str).extract[EventQuery]
     val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
-    println(resp)
-    resp shouldBe an[List[Event]]
+
+    resp shouldBe a[ResultList]
 
   }
 
@@ -42,7 +42,7 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers {
     val str = Source.fromURL(getClass.getResource("/metricQueryAgg.json")).mkString
     val metricQuery = parse(str).extract[EventQuery]
     val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
-    resp shouldBe an[Map[String, Double]]
+    resp shouldBe a[AggregationResult]
 
   }
 

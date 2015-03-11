@@ -7,7 +7,7 @@ import com.sksamuel.elastic4s.source.DocumentSource
 /**
  * Created by lazycoder on 25/02/15.
  */
-class CustomObjectSource(any: Any) extends DocumentSource{
+class CustomObjectSource(any: Any) extends DocumentSource {
   override def json: String = CustomObjectSource.mapper.writeValueAsString(any)
 }
 
