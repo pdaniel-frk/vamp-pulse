@@ -19,7 +19,6 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfter with 
 
   "Kafka Driver" must {
     "fetch message from a stream and send it to consumer" in {
-
       val producer = new KafkaProducer(config.getString("stream.topic"), config.getString("stream.kafka_broker"))
 
       KafkaDriver.start(self, _system)
