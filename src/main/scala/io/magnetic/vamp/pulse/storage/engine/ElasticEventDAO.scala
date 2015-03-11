@@ -70,6 +70,8 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
     val aggregator = metricQuery.aggregator.getOrElse(Aggregator("average"))
 
+    val aggField = s"value.${aggregator.field}"
+
 
     client.execute {
       search  in eventIndex -> eventEntity searchType SearchType.Count aggs {
@@ -77,9 +79,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
           must(filters)
         } aggs {
           aggregator.`type` match {
-            case "average" => aggregation avg "val_agg" field aggregator.field
-            case "min" => aggregation min  "val_agg" field aggregator.field
-            case "max" => aggregation max  "val_agg" field aggregator.field
+            case "average" => aggregation avg "val_agg" field aggField
+            case "min" => aggregation min  "val_agg" field aggField
+            case "max" => aggregation max  "val_agg" field aggField
             case str: String => throw new Exception(s"No such aggregation implemented $str")
           }
         }
