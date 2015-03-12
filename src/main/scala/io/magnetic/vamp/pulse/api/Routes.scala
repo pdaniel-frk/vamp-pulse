@@ -9,6 +9,8 @@ import spray.http.CacheDirectives.`no-store`
 import spray.http.HttpHeaders.{RawHeader, `Cache-Control`}
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
+import scala.util.{Failure, Success}
+import spray.http.StatusCodes.{Success => SuccessCode}
 import spray.httpx.Json4sSupport
 import spray.routing.Directives._
 import spray.routing.Route
@@ -41,15 +43,15 @@ class Routes(val metricDao: ElasticEventDAO)(implicit val executionContext: Exec
         pathEndOrSingleSlash {
           post {
             entity(as[Metric]) {
-              request => onSuccess(metricDao.insert(request)){
-                case resp => complete(Created, request)
+              request => onComplete(metricDao.insert(request)){
+                case _ => complete(Created, request)
               }
             }
           } ~
           post {
               entity(as[Event]) {
-                request => onSuccess(metricDao.insert(request)){
-                  case resp => complete(Created, request)
+                request => onComplete(metricDao.insert(request)){
+                  case _ => complete(Created, request)
                 }
               }
           }
