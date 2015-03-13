@@ -14,6 +14,7 @@ import spray.http.StatusCodes.{Success => SuccessCode}
 import spray.httpx.Json4sSupport
 import spray.routing.Directives._
 import spray.routing.Route
+import org.json4s.native.JsonMethods._
 
 import scala.concurrent.ExecutionContext
 

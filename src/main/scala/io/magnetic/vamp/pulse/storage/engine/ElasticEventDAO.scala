@@ -104,7 +104,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
           eventEntity as (
             "tags" typed StringType,
             "timestamp" typed DateType,
-            "value" typed ObjectType
+            "value" typed ObjectType nested (
+              field("blob") typed ObjectType enabled(false)
+            )
           )
       )
   }

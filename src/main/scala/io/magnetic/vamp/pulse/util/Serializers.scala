@@ -24,5 +24,5 @@ class OffsetDateTimeSerializer extends CustomSerializer[OffsetDateTime](
 )
 
 object Serializers {
-  val formats = DefaultFormats + new OffsetDateTimeSerializer() + new EnumerationSerializer()
+  implicit val formats = DefaultFormats + new OffsetDateTimeSerializer() + new EnumerationSerializer()
 }
