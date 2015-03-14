@@ -31,8 +31,6 @@ final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: Offse
       case ElasticEvent(_, v: Map[_, _], _, props)
         if props.`type` == EventType.Numeric =>
           Try(Metric(tags, v.asInstanceOf[Map[String, Double]]("value"), timestamp)).getOrElse(Metric(tags, 0D, timestamp))
-
-
       case _ => Event(tags, value, timestamp)
     }
   }
