@@ -66,11 +66,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
       rangeFilter("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
     )
 
-    if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution("and")
+    if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution "and"
 
     val aggregator = metricQuery.aggregator.getOrElse(Aggregator("average"))
-
-    val typeSection = if(!metricQuery.`type`.isEmpty) s".${metricQuery.`type`}" else ""
 
     val aggFieldParts = List("value", metricQuery.`type`, aggregator.field)
 
