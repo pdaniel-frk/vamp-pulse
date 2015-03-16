@@ -4,9 +4,6 @@ import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
-import org.json4s.native.Serialization._
-import scala.util.control.Exception.allCatch
-
 import scala.util.Try
 
 object EventType extends Enumeration {

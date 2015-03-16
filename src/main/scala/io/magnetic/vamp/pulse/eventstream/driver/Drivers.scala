@@ -1,13 +1,16 @@
 package io.magnetic.vamp.pulse.eventstream.driver
 
+import java.util.concurrent.TimeUnit
+import org.glassfish.jersey.client.ClientConfig
+
 import akka.actor.{ActorRef, ActorSystem}
 import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
 import com.typesafe.config.ConfigFactory
 import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
 import kafka.serializer.DefaultDecoder
-import org.glassfish.jersey.client.{JerseyClient, JerseyClientBuilder}
-import org.glassfish.jersey.media.sse.{EventSource, InboundEvent}
+import org.glassfish.jersey.client.{ClientProperties, JerseyClient, JerseyClientBuilder}
+import org.glassfish.jersey.media.sse.{EventListener, EventSource, InboundEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -15,31 +18,30 @@ import scala.concurrent.Future
 trait Driver {
   protected val config = ConfigFactory.load().getConfig("stream")
 
+  var sseActorRef: ActorRef = _
+
   def start(ref: ActorRef, system: ActorSystem)
   def stop()
 }
 
 object SseDriver extends Driver{
-  lazy private val client: JerseyClient = JerseyClientBuilder.createClient()
+  lazy private val client: JerseyClient = {
+    val config: ClientConfig  = new ClientConfig()
+    config.property(ClientProperties.READ_TIMEOUT, 1000)
+    config.property(ClientProperties.CONNECT_TIMEOUT, 1000)
 
-  private var eventSource: EventSource = _
-  
-  lazy private val decoder = new ElasticEventDecoder()
+    val c = JerseyClientBuilder.createClient(config)
+
+    c
+  }
 
   override def start(ref: ActorRef, system: ActorSystem): Unit = {
-    Future {
-      val target = client.target(config.getString("url"))
-      eventSource = new EventSource(target) {
-        override def onEvent(inboundEvent: InboundEvent): Unit = inboundEvent.getName match {
-          case "metric" => ref ! decoder.fromString(inboundEvent.readData(classOf[String]))
-          case _ => println(s"Received event ${inboundEvent.getName}, ignoring")
-        }
-      }
-    }
+    sseActorRef = system.actorOf(SSEConnectionActor.props(config.getString("url"), ref))
+    sseActorRef ! OpenConnection
   }
 
   override def stop(): Unit = {
-    eventSource.close()
+    sseActorRef ! CloseConnection
   }
 }
 
