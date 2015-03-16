@@ -70,8 +70,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
     val aggregator = metricQuery.aggregator.getOrElse(Aggregator("average"))
 
-    val aggField = s"value.${aggregator.field}"
+    val typeSection = if(!metricQuery.`type`.isEmpty) s".${metricQuery.`type`}" else ""
 
+    val aggField = s"value$typeSection.${aggregator.field}"
 
     client.execute {
       search  in eventIndex -> eventEntity searchType SearchType.Count aggs {
@@ -87,7 +88,8 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
         }
       }
     } map {
-      resp => var value: Double = resp.getAggregations
+      resp =>
+        var value: Double = resp.getAggregations
         .get("filter_agg").asInstanceOf[InternalFilter]
         .getAggregations.get("val_agg").asInstanceOf[InternalNumericMetricsAggregation.SingleValue]
         .value()
@@ -104,9 +106,8 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
           eventEntity as (
             "tags" typed StringType,
             "timestamp" typed DateType,
-            "value" typed ObjectType nested (
-              field("blob") typed ObjectType enabled(false)
-            )
+            "value" typed ObjectType,
+            "blob" typed ObjectType enabled false
           )
       )
   }

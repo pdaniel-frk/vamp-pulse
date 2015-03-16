@@ -25,12 +25,14 @@ trait Evt {
 final case class Metric(tags: Seq[String], value: Double, timestamp: OffsetDateTime = OffsetDateTime.now()) extends Evt
 
 
-final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime, properties: EventProperties){
+final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime, properties: EventProperties, blob: AnyRef = ""){
   def convertOutput = {
     this match {
-      case ElasticEvent(_, v: Map[_, _], _, props)
+      case ElasticEvent(_, v: Map[_, _], _, props, _)
         if props.`type` == EventType.Numeric =>
-          Try(Metric(tags, v.asInstanceOf[Map[String, Double]]("value"), timestamp)).getOrElse(Metric(tags, 0D, timestamp))
+          Try(Metric(tags, v.asInstanceOf[Map[String, Double]]("numeric"), timestamp)).getOrElse(Metric(tags, 0D, timestamp))
+      case ElasticEvent(_, _, _, props, b) if props.`type` == EventType.JsonBlob => Event(tags, b, timestamp)
+
       case _ => Event(tags, value, timestamp)
     }
   }
@@ -50,7 +52,7 @@ object ElasticEvent {
 
   implicit def eventToElasticEvent(event: Event): ElasticEvent = {
     if(event.`type`.isEmpty) {
-      ElasticEvent(event.tags, Map("blob" -> event.value), event.timestamp, EventProperties(EventType.JsonBlob))
+      ElasticEvent(event.tags, "", event.timestamp, EventProperties(EventType.JsonBlob), event.value)
     } else {
       ElasticEvent(event.tags, Map(event.`type` -> event.value), event.timestamp, EventProperties(EventType.Typed))
     }
