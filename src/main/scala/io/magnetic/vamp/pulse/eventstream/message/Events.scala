@@ -17,12 +17,8 @@ import io.magnetic.vamp.pulse.eventstream.message.EventType._
 
 class EventTypeRef extends TypeReference[EventType.type]
 
-trait Evt {
 
-}
-
-
-final case class Metric(tags: Seq[String], value: Double, timestamp: OffsetDateTime = OffsetDateTime.now()) extends Evt
+final case class Metric(tags: Seq[String], value: Double, timestamp: OffsetDateTime = OffsetDateTime.now())
 
 
 final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime, properties: EventProperties, blob: AnyRef = ""){
@@ -42,7 +38,7 @@ final case class EventProperties(@JsonScalaEnumeration(classOf[EventTypeRef])`ty
 
 
 
-final case class Event(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime = OffsetDateTime.now(), `type`: String = "") extends Evt
+final case class Event(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime = OffsetDateTime.now(), `type`: String = "")
 
 object ElasticEvent {
   implicit def metricToElasticEvent(metric: Metric): ElasticEvent = {
@@ -52,7 +48,7 @@ object ElasticEvent {
 
   implicit def eventToElasticEvent(event: Event): ElasticEvent = {
     if(event.`type`.isEmpty) {
-      ElasticEvent(event.tags, "", event.timestamp, EventProperties(EventType.JsonBlob), event.value)
+      ElasticEvent(event.tags, Map.empty, event.timestamp, EventProperties(EventType.JsonBlob), event.value)
     } else {
       ElasticEvent(event.tags, Map(event.`type` -> event.value), event.timestamp, EventProperties(EventType.Typed))
     }
