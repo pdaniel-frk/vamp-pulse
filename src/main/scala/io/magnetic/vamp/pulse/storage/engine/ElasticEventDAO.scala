@@ -72,7 +72,10 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
     val typeSection = if(!metricQuery.`type`.isEmpty) s".${metricQuery.`type`}" else ""
 
-    val aggField = s"value$typeSection.${aggregator.field}"
+    val aggFieldParts = List("value", metricQuery.`type`, aggregator.field)
+
+    val aggField = aggFieldParts.filter(p => !p.isEmpty).mkString(".")
+
 
     client.execute {
       search  in eventIndex -> eventEntity searchType SearchType.Count aggs {
