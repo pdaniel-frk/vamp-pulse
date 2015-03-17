@@ -2,7 +2,9 @@ package io.magnetic.vamp.pulse.eventstream.driver
 
 import java.util.concurrent.TimeUnit
 
+import io.magnetic.vamp.pulse.configuration.{PulseActorLoggingNotificationProvider, PulseNotificationActor}
 import io.magnetic.vamp.pulse.eventstream.decoder.ElasticEventDecoder
+import io.magnetic.vamp.pulse.eventstream.notification.{NotStream, ConnectionSuccessful, UnableToConnect}
 import org.glassfish.jersey.media.sse.{EventSource, InboundEvent, EventListener}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,19 +20,21 @@ case object CheckConnection
 case object CloseConnection
 case object OpenConnection
 
-class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor{
-  def client: JerseyClient = {
+class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider{
+
+  override protected val notificationActor: ActorRef = context.actorOf(PulseNotificationActor.props())
+
+  private val decoder = new ElasticEventDecoder()
+
+
+  val target = {
     val config: ClientConfig  = new ClientConfig()
     config.property(ClientProperties.CONNECT_TIMEOUT, 1000)
     config.property(ClientProperties.READ_TIMEOUT, 1000)
 
-    val c = JerseyClientBuilder.createClient(config)
-    c
+    val httpClient = JerseyClientBuilder.createClient(config)
+    httpClient.target(streamUrl)
   }
-
-  private val decoder = new ElasticEventDecoder()
-
-  val target = client.target(streamUrl)
 
   val listener = new EventListener {
     override def onEvent(inboundEvent: InboundEvent): Unit = inboundEvent.getName match {
@@ -67,24 +71,23 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
         target.request().head()
       }
 
-      val t = Try(Await.result(fut, 2 seconds))
 
-      if(t.isFailure) {
-        if(eventSource.isDefined && eventSource.get.isOpen) {
-          eventSource.get.close
-          eventSource = Option.empty
-        }
-        println(t.failed)
-        println("Failed to connect")
-      } else {
-        if(eventSource.isEmpty && isOpen){
-          println("build new source")
-          eventSource = buildEventSource
-          eventSource.get.open()
-        }
-        println(t.get.getMediaType)
-        println("Connected")
+      Try(Await.result(fut, 2 seconds)) match {
+        case Failure(_) =>
+          if (eventSource.isDefined && eventSource.get.isOpen) {
+            eventSource.get.close
+            eventSource = Option.empty
+          }
+          exception(UnableToConnect(streamUrl))
+        case Success(resp) if resp.getHeaderString("X-Vamp-Stream") != null =>
+          if(eventSource.isEmpty && isOpen){
+            eventSource = buildEventSource
+            eventSource.get.open()
+            log.info(message(ConnectionSuccessful(streamUrl)))
+          }
+        case _ => exception(NotStream(streamUrl))
       }
+
 
       if(isOpen) context.system.scheduler.scheduleOnce(2000 millis, self, CheckConnection)
 

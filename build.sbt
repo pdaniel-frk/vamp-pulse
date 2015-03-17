@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "commons-io" % "commons-io" % "2.4",
   "org.scalatest" %% "scalatest" % "3.0.0-SNAP4" % "test",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
-  "io.magnetic.vamp-common" % "vamp-common" % "0.5.0",
+  "io.magnetic.vamp-common" % "vamp-common" % "0.6.0",
   "io.spray" %% "spray-can" % "1.3.2",
   "io.spray" %% "spray-http" % "1.3.2",
   "io.spray" %% "spray-util" % "1.3.2",
