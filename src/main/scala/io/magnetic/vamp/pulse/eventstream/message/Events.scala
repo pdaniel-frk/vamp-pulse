@@ -26,12 +26,12 @@ final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: Offse
           Try(Metric(tags, v.asInstanceOf[Map[String, Double]]("numeric"), timestamp)).getOrElse(Metric(tags, 0D, timestamp))
       case ElasticEvent(_, _, _, props, b) if props.`type` == EventType.JsonBlob => Event(tags, b, timestamp)
 
-      case _ => Event(tags, value, timestamp)
+      case ElasticEvent(_, v: Map[String, AnyRef], _, props, _) => Event(tags, v(props.objectType), timestamp, props.objectType)
     }
   }
 }
 
-final case class EventProperties(@JsonScalaEnumeration(classOf[EventTypeRef])`type`: EventType)
+final case class EventProperties(@JsonScalaEnumeration(classOf[EventTypeRef])`type`: EventType, objectType: String = "")
 
 
 
@@ -47,7 +47,7 @@ object ElasticEvent {
     if(event.`type`.isEmpty) {
       ElasticEvent(event.tags, Map.empty, event.timestamp, EventProperties(EventType.JsonBlob), event.value)
     } else {
-      ElasticEvent(event.tags, Map(event.`type` -> event.value), event.timestamp, EventProperties(EventType.Typed))
+      ElasticEvent(event.tags, Map(event.`type` -> event.value), event.timestamp, EventProperties(EventType.Typed, event.`type`))
     }
 
   }
