@@ -49,6 +49,8 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
     if(tagNum > 0) queries += termsQuery("tags", metricQuery.tags:_*) minimumShouldMatch(tagNum)
 
+    if(!metricQuery.`type`.isEmpty) queries += termQuery("properties.objectType", metricQuery.`type`)
+
     client.execute {
       search in eventIndex -> eventEntity query {
         must  (
@@ -65,6 +67,8 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
     val filters: Queue[FilterDefinition] = Queue(
       rangeFilter("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
     )
+
+    if(!metricQuery.`type`.isEmpty) filters += termFilter("properties.objectType", metricQuery.`type`)
 
     if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution "and"
 

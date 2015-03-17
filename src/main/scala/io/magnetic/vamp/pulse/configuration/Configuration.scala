@@ -5,3 +5,4 @@ import io.magnetic.vamp_common.notification.{DefaultPackageMessageResolverProvid
 object DefaultNotification extends LoggingNotificationProvider with DefaultPackageMessageResolverProvider {
 
 }
+

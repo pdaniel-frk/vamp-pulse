@@ -24,9 +24,10 @@ final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: Offse
       case ElasticEvent(_, v: Map[_, _], _, props, _)
         if props.`type` == EventType.Numeric =>
           Try(Metric(tags, v.asInstanceOf[Map[String, Double]]("numeric"), timestamp)).getOrElse(Metric(tags, 0D, timestamp))
+
       case ElasticEvent(_, _, _, props, b) if props.`type` == EventType.JsonBlob => Event(tags, b, timestamp)
 
-      case ElasticEvent(_, v: Map[String, AnyRef], _, props, _) => Event(tags, v(props.objectType), timestamp, props.objectType)
+      case ElasticEvent(_, v: Map[_, _], _, props, _) => Event(tags, v.asInstanceOf[Map[String, AnyRef]].getOrElse(props.objectType, ""), timestamp, props.objectType)
     }
   }
 }
