@@ -25,8 +25,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   implicit val formats = Serializers.formats
 
   def insert(metric: ElasticEvent) = {
+    import CustomObjectSource._
     client.execute {
-      index into s"$eventIndex/$eventEntity" doc CustomObjectSource(metric)
+      index into s"$eventIndex/$eventEntity" doc metric
     }
   }
 
