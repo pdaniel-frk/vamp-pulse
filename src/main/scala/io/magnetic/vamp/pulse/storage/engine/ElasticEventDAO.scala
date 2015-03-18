@@ -10,6 +10,7 @@ import io.magnetic.vamp.pulse.util.Serializers
 import org.elasticsearch.action.index.IndexResponse
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
+import org.elasticsearch.search.sort.SortOrder
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
@@ -58,7 +59,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
         must  (
           queries
         )
-      } start 0 limit 30
+      } sort (
+        by field "timestamp" order SortOrder.DESC
+      ) start 0 limit 30
     } map {
       resp => ResultList(List(resp.getHits.hits().map((hit) =>  parse(hit.sourceAsString()).extract[ElasticEvent]): _*))
     }
