@@ -12,7 +12,9 @@ import spray.util.LoggingContext
 class HttpActor(val metricDAO: ElasticEventDAO) extends HttpServiceActor with ActorLogging {
 
   def exceptionHandler = ExceptionHandler {
-    case e: Exception => requestUri { uri =>
+    case e: NotificationErrorException => complete(BadRequest, e.message)
+    case e: Exception if !e.isInstanceOf[NotificationErrorException] => requestUri { uri =>
+      log.info(e.getClass.toString)
       log.error(s"Request to {} could not be handled $e", uri)
       complete(InternalServerError)
     }

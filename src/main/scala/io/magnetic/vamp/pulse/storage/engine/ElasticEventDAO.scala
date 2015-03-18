@@ -5,54 +5,67 @@ import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
 import io.magnetic.vamp.pulse.api.{Aggregator, EventQuery}
 import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
+import io.magnetic.vamp.pulse.eventstream.notification.MappingErrorNotification
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 import io.magnetic.vamp.pulse.util.Serializers
+import io.magnetic.vamp_common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import org.elasticsearch.action.index.IndexResponse
+import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
 import org.elasticsearch.search.sort.SortOrder
+import org.elasticsearch.transport.RemoteTransportException
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
 import scala.collection.mutable.Queue
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Success, Failure}
 
 final case class ResultList(list: List[ElasticEvent])
 final case class AggregationResult(map: Map[String, Double])
 
-class ElasticEventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext) {
+class ElasticEventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext)
+  extends LoggingNotificationProvider with DefaultPackageMessageResolverProvider{
+
   private val eventEntity = "event"
   private val eventIndex = "events"
 
   implicit val formats = Serializers.formats
 
-  def insert(metric: ElasticEvent) = {
+  def insert(event: ElasticEvent) = {
     import CustomObjectSource._
+
     client.execute {
-      index into s"$eventIndex/$eventEntity" doc metric
+        index into s"$eventIndex/$eventEntity" doc event
+    } recoverWith  {
+      case e: RemoteTransportException => e.getCause() match {
+        case t: MapperParsingException => throw exception(MappingErrorNotification(e.getCause, event.properties.objectType))
+      }
     }
+
   }
 
 
-  def getEvents(metricQuery: EventQuery): Future[Any] = {
-    if(metricQuery.aggregator.isEmpty) {
-      getPlainEvents(metricQuery)
+  def getEvents(eventQuery: EventQuery): Future[Any] = {
+    if(eventQuery.aggregator.isEmpty) {
+      getPlainEvents(eventQuery)
     } else {
-      getAggregateEvents(metricQuery)
+      getAggregateEvents(eventQuery)
     }
   }
   
 
-  private def getPlainEvents(metricQuery: EventQuery) = {
-    val tagNum = metricQuery.tags.length
+  private def getPlainEvents(eventQuery: EventQuery) = {
+    val tagNum = eventQuery.tags.length
 
     val queries: Queue[QueryDefinition] = Queue(
-      rangeQuery("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
+      rangeQuery("timestamp") from eventQuery.time.from.toEpochSecond to eventQuery.time.to.toEpochSecond
     )
 
-    if(tagNum > 0) queries += termsQuery("tags", metricQuery.tags:_*) minimumShouldMatch(tagNum)
+    if(tagNum > 0) queries += termsQuery("tags", eventQuery.tags:_*) minimumShouldMatch(tagNum)
 
-    if(!metricQuery.`type`.isEmpty) queries += termQuery("properties.objectType", metricQuery.`type`)
+    if(!eventQuery.`type`.isEmpty) queries += termQuery("properties.objectType", eventQuery.`type`)
 
     client.execute {
       search in eventIndex -> eventEntity query {
@@ -103,6 +116,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
         .get("filter_agg").asInstanceOf[InternalFilter]
         .getAggregations.get("val_agg").asInstanceOf[InternalNumericMetricsAggregation.SingleValue]
         .value()
+
         //TODO: Wrapper for result types to check corner-cases
         //TODO: Also might be a good idea not to use java api and map response json directly to whatever case classes we might have
         if(value.isNaN || value.isInfinite) value = 0D
