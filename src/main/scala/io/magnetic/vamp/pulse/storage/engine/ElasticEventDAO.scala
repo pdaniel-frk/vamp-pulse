@@ -7,6 +7,7 @@ import io.magnetic.vamp.pulse.api.{Aggregator, EventQuery}
 import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent
 import io.magnetic.vamp.pulse.mapper.CustomObjectSource
 import io.magnetic.vamp.pulse.util.Serializers
+import org.elasticsearch.action.index.IndexResponse
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
 import org.json4s._

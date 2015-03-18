@@ -45,16 +45,15 @@ class Routes(val metricDao: ElasticEventDAO)(implicit val executionContext: Exec
         pathEndOrSingleSlash {
           post {
             entity(as[Metric]) {
-              request => onComplete(metricDao.insert(request)){
-                case _ => complete(Created, request)
+              request => onSuccess(metricDao.insert(request)){
+                case resp: IndexResponse => complete(Created, request)
               }
             }
           } ~
           post {
               entity(as[Event]) {
-                request => onComplete(metricDao.insert(request)){
-                  case _ => complete(Created, request)
-                }
+                request => onSuccess(metricDao.insert(request)){
+                  case resp: IndexResponse => complete(Created, request)           }
               }
           }
         }
