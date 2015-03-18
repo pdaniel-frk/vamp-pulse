@@ -13,7 +13,7 @@ class HttpActor(val metricDAO: ElasticEventDAO) extends HttpServiceActor with Ac
 
   def exceptionHandler = ExceptionHandler {
     case e: NotificationErrorException => complete(BadRequest, e.message)
-    case e: Exception if !e.isInstanceOf[NotificationErrorException] => requestUri { uri =>
+    case e: Exception => requestUri { uri =>
       log.info(e.getClass.toString)
       log.error(s"Request to {} could not be handled $e", uri)
       complete(InternalServerError)

@@ -39,7 +39,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
     client.execute {
         index into s"$eventIndex/$eventEntity" doc event
     } recoverWith  {
-      case e: RemoteTransportException => e.getCause() match {
+      case e: RemoteTransportException => e.getCause match {
         case t: MapperParsingException => throw exception(MappingErrorNotification(e.getCause, event.properties.objectType))
       }
     }
