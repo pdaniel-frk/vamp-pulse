@@ -105,7 +105,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
         .value()
         //TODO: Wrapper for result types to check corner-cases
         //TODO: Also might be a good idea not to use java api and map response json directly to whatever case classes we might have
-        if(value.compareTo(Double.NaN) == 0 || value.compareTo(Double.PositiveInfinity) == 0 || value.compareTo(Double.NegativeInfinity) == 0) value = 0D
+        if(value.isNaN || value.isInfinite) value = 0D
 
         AggregationResult(Map("value" -> value))
     }
