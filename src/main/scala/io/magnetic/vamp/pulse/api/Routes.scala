@@ -4,6 +4,7 @@ import io.magnetic.vamp.pulse.eventstream.message.ElasticEvent._
 import io.magnetic.vamp.pulse.eventstream.message.{Event, Metric}
 import io.magnetic.vamp.pulse.storage.engine.{AggregationResult, ElasticEventDAO, ResultList}
 import io.magnetic.vamp.pulse.util.Serializers
+import org.elasticsearch.action.index.IndexResponse
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
 import spray.http.HttpHeaders.{RawHeader, `Cache-Control`}
