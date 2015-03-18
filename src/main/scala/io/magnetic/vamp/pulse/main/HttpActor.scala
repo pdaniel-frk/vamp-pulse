@@ -20,6 +20,7 @@ class HttpActor(val metricDAO: ElasticEventDAO) extends HttpServiceActor with Ac
 
   def rejectionHandler = RejectionHandler {
     case MalformedRequestContentRejection(msg, Some(e: NotificationErrorException)) :: _ => complete(BadRequest, "The request content was malformed:\n" + msg)
+    case MalformedRequestContentRejection(msg, Some(e: Throwable)) :: _ => println(e.getClass); complete(BadRequest)
   }
 
   def routingSettings = RoutingSettings.default
