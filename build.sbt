@@ -1,10 +1,15 @@
 Revolver.settings
 
+organization := "io.vamp"
+
 name := """pulse"""
 
 version := "0.7.0-RC1"
 
 scalaVersion := "2.11.5"
+
+publishMavenStyle := true
+
 
 
 resolvers ++= Seq(
