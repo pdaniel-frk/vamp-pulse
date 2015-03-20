@@ -140,13 +140,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
   def cleanupEvents = {
     client.execute {
-      delete from eventIndex -> eventEntity where {
-        bool {
-          must {
-            matchall
-          }
-        }
-      }
+      deleteIndex(eventIndex)
     } await(60 seconds)
+
+    createIndex await
   }
 }
