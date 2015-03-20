@@ -9,7 +9,7 @@ import spray.http.{HttpRequest, HttpResponse, Timedout}
 import spray.routing._
 import spray.util.LoggingContext
 
-class HttpActor(val metricDAO: ElasticEventDAO) extends HttpServiceActor with ActorLogging {
+class HttpActor(val eventDao: ElasticEventDAO) extends HttpServiceActor with ActorLogging {
 
   def exceptionHandler = ExceptionHandler {
     case e: NotificationErrorException => complete(BadRequest, e.message)
@@ -36,9 +36,9 @@ class HttpActor(val metricDAO: ElasticEventDAO) extends HttpServiceActor with Ac
 
   val executionContext = actorRefFactory.dispatcher
 
-  def receive = handleTimeouts orElse runRoute(new Routes(metricDAO)(executionContext).route)(exceptionHandler, rejectionHandler, context, routingSettings, loggingContext)
+  def receive = handleTimeouts orElse runRoute(new Routes(eventDao)(executionContext).route)(exceptionHandler, rejectionHandler, context, routingSettings, loggingContext)
 }
 
 object HttpActor {
-  def props(metricDAO: ElasticEventDAO): Props = Props(new HttpActor(metricDAO))
+  def props(eventDao: ElasticEventDAO): Props = Props(new HttpActor(eventDao))
 }

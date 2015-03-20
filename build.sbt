@@ -1,6 +1,6 @@
 Revolver.settings
 
-name := """vamp-pulse"""
+name := """pulse"""
 
 version := "0.7.0-RC1"
 

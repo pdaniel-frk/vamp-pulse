@@ -11,6 +11,7 @@ import io.vamp.pulse.eventstream.notification.MappingErrorNotification
 import io.vamp.pulse.mapper.CustomObjectSource
 import io.vamp.pulse.util.Serializers
 import org.elasticsearch.action.index.IndexResponse
+import scala.concurrent.duration._
 import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
@@ -135,5 +136,17 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
             "blob" typed ObjectType enabled false
           )
       )
+  }
+
+  def cleanupEvents = {
+    client.execute {
+      delete from eventIndex -> eventEntity where {
+        bool {
+          must {
+            matchall
+          }
+        }
+      }
+    } await(60 seconds)
   }
 }

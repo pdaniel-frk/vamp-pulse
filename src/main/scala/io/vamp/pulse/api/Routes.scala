@@ -21,7 +21,7 @@ import org.json4s.native.JsonMethods._
 
 import scala.concurrent.ExecutionContext
 
-class Routes(val metricDao: ElasticEventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
+class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
 
   protected def jsonResponse = respondWithMediaType(`application/json`) | respondWithHeaders(`Cache-Control`(`no-store`), RawHeader("Pragma", "no-cache"))
 
@@ -29,12 +29,24 @@ class Routes(val metricDao: ElasticEventDAO)(implicit val executionContext: Exec
 
   def route: Route = jsonResponse {
     pathPrefix("api" / "v1") {
+      path("events" / "reset") {
+        pathEndOrSingleSlash {
+          get {
+            requestEntityEmpty {
+              ctx => {
+                eventDao.cleanupEvents
+                ctx.complete(OK)
+              }
+            }
+          }
+        }
+      } ~
       path("events" / "get") {
         pathEndOrSingleSlash {
           post {
             entity(as[EventQuery]) {
               request =>
-                onSuccess(metricDao.getEvents(request)){
+                onSuccess(eventDao.getEvents(request)){
                 case ResultList(list) => complete(OK, list.map(_.convertOutput))
                 case AggregationResult(map) => complete(OK, map)
                 case _ => complete(BadRequest)
@@ -47,14 +59,14 @@ class Routes(val metricDao: ElasticEventDAO)(implicit val executionContext: Exec
         pathEndOrSingleSlash {
           post {
             entity(as[Metric]) {
-              request => onSuccess(metricDao.insert(request)){
+              request => onSuccess(eventDao.insert(request)){
                 case resp: IndexResponse => complete(Created, request)
               }
             }
           } ~
           post {
               entity(as[Event]) {
-                request => onSuccess(metricDao.insert(request)){
+                request => onSuccess(eventDao.insert(request)){
                   case resp: IndexResponse => complete(Created, request)           }
               }
           }
