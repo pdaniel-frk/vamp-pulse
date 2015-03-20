@@ -8,9 +8,6 @@ import akka.stream.scaladsl.{PropsSource, Sink, Source}
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import io.vamp.pulse.eventstream.driver.KafkaDriver
-import io.vamp.pulse.eventstream.producer._
-import io.vamp.pulse.storage.engine.ElasticEventDAO
 import io.vamp.pulse.eventstream.driver.{KafkaDriver, SseDriver, Driver}
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import io.vamp.pulse.eventstream.producer.{KafkaMetricsPublisher, SSEMetricsPublisher}
@@ -25,60 +22,101 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
-private object Startup extends App {
-  val config = ConfigFactory.load()
+object Startup extends App {
+  private implicit val system = ActorSystem("pulse-system")
+  private implicit val mat = ActorFlowMaterializer()
+  private implicit val executionContext = system.dispatcher
+
+  private val config = ConfigFactory.load()
   private val logger = Logger(LoggerFactory.getLogger("Main"))
-  implicit val formats = Serialization.formats(NoTypeHints)
+  private implicit val formats = Serialization.formats(NoTypeHints)
 
-  implicit val system = ActorSystem("pulse-system")
-  implicit val mat = ActorFlowMaterializer()
-  implicit val executionContext = system.dispatcher
+  private val streamDriverType = Try(config.getString("stream.driver")).getOrElse("sse")
 
-  val streamDriverType = Try(config.getString("stream.driver")).getOrElse("sse")
+  private val esConf = config.getConfig("storage.es")
+  private var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
+  private val esClusterName = esConf.getString("cluster.name")
+  private implicit val esClient = ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
 
-  val esConf = config.getConfig("storage.es")
-  var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
-  val esClusterName = esConf.getString("cluster.name")
+  private val metricDao = new ElasticEventDAO
 
+  private var startTriggered = false
 
+  private var stopTriggered = false
 
-
-  esConf.getBoolean("embedded.enabled") match {
-    case true =>
-      logger.info("Starting embedded ES cluster")
-      esServer = Option(new ESLocalServer(esClusterName, esConf.getBoolean("embedded.http")))
-      esServer.get.start
-    case false => logger.debug("No embedded ES cluster")
+  def start: Unit = {
+    if(!startTriggered) {
+      startTriggered = true
+      startup
+    } else {
+      logger.error("Pulse is already started")
+    }
   }
 
-  implicit val esClient = ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
+  private def startup: Unit = {
 
-  val metricDao = new ElasticEventDAO
+    esConf.getBoolean("embedded.enabled") match {
+      case true =>
+        logger.info("Starting embedded ES cluster")
+        esServer = Option(new ESLocalServer(esClusterName, esConf.getBoolean("embedded.http")))
+        esServer.get.start
+      case false => logger.debug("No embedded ES cluster")
+    }
 
-  metricDao.createIndex
 
-  val (metricManagerSource: PropsSource[ElasticEvent], driver: Driver) = initSourceAndDriver
+    metricDao.createIndex
 
-  val materializedMap = metricManagerSource
-    .to(Sink.foreach(elem =>  {
+    val (metricManagerSource: PropsSource[ElasticEvent], driver: Driver) = initSourceAndDriver
+
+    val materializedMap = metricManagerSource
+      .to(Sink.foreach(elem =>  {
       Await.result(metricDao.insert(elem), 1 second)
-  })).run()
+    })).run()
 
-  driver.start(materializedMap.get(metricManagerSource), system)
+    driver.start(materializedMap.get(metricManagerSource), system)
 
-  httpListen
+    httpListen
+  }
 
-
-
-
-
+  start
 
 
+  def stop: Unit = {
+    if(!stopTriggered){
+      stopTriggered = true
+      stopPulse
+    } else {
+      logger.error("Pulse is already being stopped")
+    }
+  }
+
+  private def stopPulse: Unit = {
+
+    if(esServer.isDefined){
+      esServer.get.stop
+    }
+
+    system.shutdown()
+  }
 
 
 
 
-  def httpListen = {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  private def httpListen = {
 
     val server = system.actorOf(HttpActor.props(metricDao), "http-actor")
     val interface = config.getString("http.interface")
@@ -89,7 +127,7 @@ private object Startup extends App {
     IO(Http)(system) ? Http.Bind(server, interface, port)
   }
 
-  def initSourceAndDriver = streamDriverType match {
+  private def initSourceAndDriver = streamDriverType match {
     case "sse" =>
       (Source[ElasticEvent](SSEMetricsPublisher.props), SseDriver)
 
