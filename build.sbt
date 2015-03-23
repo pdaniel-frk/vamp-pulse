@@ -10,6 +10,32 @@ scalaVersion := "2.11.5"
 
 publishMavenStyle := true
 
+description := """Pulse provides means of event storage/aggregation, consumes streams via rest api, kafka and sse."""
+
+
+pomExtra := (<url>http://vamp.io</url>
+    <licenses>
+      <license>
+        <name>The Apache License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
+    </licenses>
+    <developers>
+      <developer>
+        <name>Roman Useinov</name>
+        <email>roman@mangetic.io</email>
+        <organization>VAMP</organization>
+        <organizationUrl>http://vamp.io</organizationUrl>
+      </developer>
+    </developers>
+    <scm>
+      <connection>scm:git:git@github.com:magneticio/vamp-pulse.git</connection>
+      <developerConnection>scm:git:git@github.com:magneticio/vamp-pulse.git</developerConnection>
+      <url>git@github.com:magneticio/vamp-pulse.git</url>
+    </scm>
+  )
+
+
 
 
 resolvers ++= Seq(
