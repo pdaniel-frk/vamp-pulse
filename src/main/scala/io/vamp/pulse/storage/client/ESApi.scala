@@ -8,7 +8,9 @@ import org.elasticsearch.common.settings.ImmutableSettings
  */
 object ESApi {
   def getClient(clusterName: String, host: String, port: Int) = {
-    val settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build()
+    val settings = ImmutableSettings.settingsBuilder()
+      .put("cluster.name", clusterName).build()
+
     ElasticClient.remote(settings, host, port)
   }
 }
