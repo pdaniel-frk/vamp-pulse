@@ -6,6 +6,7 @@ import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl.{PropsSource, Sink, Source}
 import akka.util.Timeout
+import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 import io.vamp.pulse.eventstream.driver.{Driver, KafkaDriver, SseDriver}
@@ -36,9 +37,6 @@ object Startup extends App {
   private val esConf = config.getConfig("storage.es")
   private var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
   private val esClusterName = esConf.getString("cluster.name")
-  private lazy implicit val esClient = ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
-
-  private val metricDao = new ElasticEventDAO
 
   private var startTriggered = false
 
@@ -55,16 +53,19 @@ object Startup extends App {
 
   private def startup: Unit = {
 
-    esConf.getBoolean("embedded.enabled") match {
+    implicit var esClient: ElasticClient = esConf.getBoolean("embedded.enabled") match {
       case true =>
         logger.info("Starting embedded ES cluster")
-        esServer = Option(new ESLocalServer(esClusterName, esConf.getBoolean("embedded.http")))
-        esServer.get.start
+        esServer = Option(new ESLocalServer(esClusterName, esConf.getBoolean("embedded.http"), esConf.getBoolean("embedded.local")))
+        ElasticClient.fromClient(esServer.get.start.client())
+
       case false => logger.debug("No embedded ES cluster")
+        ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
     }
 
+    val eventDao = new ElasticEventDAO
 
-    metricDao.createIndex
+    eventDao.createIndex
 
     val (metricManagerSource: PropsSource[ElasticEvent], driver: Driver) = initSourceAndDriver
 
@@ -72,12 +73,12 @@ object Startup extends App {
       .to(Sink.foreach(elem =>  {
       // TODO: This needs to turn into parallel/bulk insert since otherwise it's too slow.
       // I guess we should actually make use of some MQ in order to consume SSE streams.
-      metricDao.insert(elem)
+      eventDao.insert(elem)
     })).run()
 
     driver.start(materializedMap.get(metricManagerSource), system)
 
-    httpListen
+    httpListen(eventDao)
   }
 
   start
@@ -118,9 +119,9 @@ object Startup extends App {
 
 
 
-  private def httpListen = {
+  private def httpListen(eventDao: ElasticEventDAO) = {
 
-    val server = system.actorOf(HttpActor.props(metricDao), "http-actor")
+    val server = system.actorOf(HttpActor.props(eventDao), "http-actor")
     val interface = config.getString("http.interface")
     val port = config.getInt("http.port")
 

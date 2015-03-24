@@ -12,13 +12,14 @@ import org.slf4j.LoggerFactory
 /**
  * Created by lazycoder on 16/02/15.
  */
-class ESLocalServer(clusterName: String, httpEnabled: Boolean = false) {
+class ESLocalServer(clusterName: String, httpEnabled: Boolean = false, local: Boolean = false) {
   private val logger = Logger(LoggerFactory.getLogger(classOf[ESLocalServer]))
   private val dataDir = Files.createTempDirectory("es_data_").toFile
   private val settings = ImmutableSettings.settingsBuilder()
                         .put("path.data", dataDir.toString)
                         .put("cluster.name", clusterName)
                         .put("http.enabled", httpEnabled)
+                        .put("node.local", local)
                         .build
   
   private lazy val node = nodeBuilder().settings(settings).build
