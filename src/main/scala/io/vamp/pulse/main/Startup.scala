@@ -70,7 +70,9 @@ object Startup extends App {
 
     val materializedMap = metricManagerSource
       .to(Sink.foreach(elem =>  {
-      Await.result(metricDao.insert(elem), 1 second)
+      // TODO: This needs to turn into parallel/bulk insert since otherwise it's too slow.
+      // I guess we should actually make use of some MQ in order to consume SSE streams.
+      metricDao.insert(elem)
     })).run()
 
     driver.start(materializedMap.get(metricManagerSource), system)
