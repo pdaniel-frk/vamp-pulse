@@ -1,7 +1,7 @@
 package io.vamp.pulse.api
 
 import io.vamp.pulse.eventstream.message.ElasticEvent._
-import io.vamp.pulse.eventstream.message.{ElasticEvent, Event, Metric}
+import io.vamp.pulse.eventstream.message.{Event, Metric}
 import io.vamp.pulse.storage.engine.{AggregationResult, ElasticEventDAO, ResultList}
 import io.vamp.pulse.util.Serializers
 import org.elasticsearch.action.index.IndexResponse
@@ -9,7 +9,7 @@ import org.json4s._
 import spray.http.CacheDirectives.`no-store`
 import spray.http.HttpHeaders.{RawHeader, `Cache-Control`}
 import spray.http.MediaTypes._
-import spray.http.StatusCodes.{Success => SuccessCode, _}
+import spray.http.StatusCodes._
 import spray.httpx.Json4sSupport
 import spray.routing.Directives._
 import spray.routing.Route
@@ -41,7 +41,7 @@ class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: Execu
           post {
             entity(as[EventQuery]) {
               request =>
-                onSuccess(eventDao.getEvents(request)){
+                onSuccess(eventDao.getEvents(request)) {
                 case ResultList(list) => complete(OK, list.map(_.convertOutput))
                 case AggregationResult(map) => complete(OK, map)
                 case _ => complete(BadRequest)
@@ -54,15 +54,16 @@ class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: Execu
         pathEndOrSingleSlash {
           post {
             entity(as[Metric]) {
-              request => onSuccess(eventDao.insert(request)){
+              request => onSuccess(eventDao.insert(request)) {
                 case resp: IndexResponse => complete(Created, request)
               }
             }
           } ~
           post {
               entity(as[Event]) {
-                request => onSuccess(eventDao.insert(request)){
-                  case resp: IndexResponse => complete(Created, request)           }
+                request => onSuccess(eventDao.insert(request)) {
+                  case resp: IndexResponse => complete(Created, request)
+                }
               }
           }
         }

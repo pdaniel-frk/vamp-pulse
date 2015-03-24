@@ -127,7 +127,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   def createIndex = client.execute {
       create index eventIndex mappings (
           eventEntity as (
-            "tags" typed StringType,
+            "tags" typed StringType index NotAnalyzed,
             "timestamp" typed DateType,
             "value" typed ObjectType,
             "blob" typed ObjectType enabled false

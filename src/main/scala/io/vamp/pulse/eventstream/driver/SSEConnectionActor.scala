@@ -3,9 +3,9 @@ package io.vamp.pulse.eventstream.driver
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{AbstractLoggingActor, ActorRef, Props}
-import akka.util.Timeout
 import io.vamp.common.akka.FutureSupport
-import io.vamp.pulse.configuration.{PulseActorLoggingNotificationProvider, PulseNotificationActor}
+import io.vamp.common.config.ConfigurationProvider
+import io.vamp.pulse.configuration.{TimeoutConfigurationProvider, PulseActorLoggingNotificationProvider, PulseNotificationActor}
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.vamp.pulse.eventstream.notification.{ConnectionSuccessful, NotStream, UnableToConnect}
 import org.glassfish.jersey.client.{ClientConfig, ClientProperties, JerseyClientBuilder}
@@ -20,21 +20,19 @@ case object CheckConnection
 case object CloseConnection
 case object OpenConnection
 
-class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider with FutureSupport{
+class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider with FutureSupport with TimeoutConfigurationProvider{
 
   override protected val notificationActor: ActorRef = context.actorOf(PulseNotificationActor.props())
-
-  private implicit val timeout = Timeout(5 seconds)
 
   private val decoder = new ElasticEventDecoder()
 
 
   val target = {
-    val config: ClientConfig  = new ClientConfig()
-    config.property(ClientProperties.CONNECT_TIMEOUT, 1000)
-    config.property(ClientProperties.READ_TIMEOUT, 1000)
+    val conf: ClientConfig  = new ClientConfig()
+    conf.property(ClientProperties.CONNECT_TIMEOUT, config.getInt("http.connect"))
+    conf.property(ClientProperties.READ_TIMEOUT, config.getInt("http.connect"))
 
-    val httpClient = JerseyClientBuilder.createClient(config)
+    val httpClient = JerseyClientBuilder.createClient(conf)
     httpClient.target(streamUrl)
   }
 
@@ -73,9 +71,9 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
         target.request().head()
       }
 
-      Await.ready(fut, 2 seconds)
+      val result = Try(Await.result(fut, config.getInt("http.connect") millis))
 
-      fut.value.get match {
+      result match {
 
         case Failure(_) =>
           if (eventSource.isDefined && eventSource.get.isOpen) {
@@ -95,7 +93,7 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
       }
 
 
-      if(isOpen) context.system.scheduler.scheduleOnce(2000 millis, self, CheckConnection)
+      if(isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)
 
     }
   }
