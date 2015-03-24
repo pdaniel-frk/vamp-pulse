@@ -19,7 +19,7 @@ object SseDriver extends Driver{
   private var sseActorRef: ActorRef = _
 
   override def start(ref: ActorRef, system: ActorSystem): Unit = {
-    sseActorRef = system.actorOf(SSEConnectionActor.props(config.getString("url"), ref))
+    sseActorRef = system.actorOf(SSESupervisionActor.props(config.getString("url"), ref))
     sseActorRef ! OpenConnection
   }
 
