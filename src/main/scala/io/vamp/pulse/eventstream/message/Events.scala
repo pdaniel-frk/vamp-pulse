@@ -4,13 +4,14 @@ import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
+
 import scala.util.Try
 
 object EventType extends Enumeration {
   type EventType = Value
   val Numeric, JsonBlob, Typed = Value
 }
-import EventType._
+import io.vamp.pulse.eventstream.message.EventType._
 
 class EventTypeRef extends TypeReference[EventType.type]
 

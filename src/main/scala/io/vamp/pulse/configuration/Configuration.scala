@@ -1,10 +1,8 @@
 package io.vamp.pulse.configuration
 
-import akka.actor.{AbstractLoggingActor, Actor, Props}
+import akka.actor.{AbstractLoggingActor, Props}
 import com.typesafe.config.ConfigFactory
-import io.vamp.common.notification._
-
-import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
+import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider, _}
 
 object DefaultNotification extends LoggingNotificationProvider with DefaultPackageMessageResolverProvider {
 

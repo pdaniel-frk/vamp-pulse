@@ -2,29 +2,29 @@ package io.vamp.pulse.eventstream.driver
 
 import java.util.concurrent.TimeUnit
 
-import io.vamp.pulse.configuration.PulseActorLoggingNotificationProvider
-import io.vamp.pulse.eventstream.notification.ConnectionSuccessful
-import io.vamp.pulse.configuration.{PulseNotificationActor, PulseActorLoggingNotificationProvider}
+import akka.actor.{AbstractLoggingActor, ActorRef, Props}
+import akka.util.Timeout
+import io.vamp.common.akka.FutureSupport
+import io.vamp.pulse.configuration.{PulseActorLoggingNotificationProvider, PulseNotificationActor}
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.vamp.pulse.eventstream.notification.{ConnectionSuccessful, NotStream, UnableToConnect}
-import org.glassfish.jersey.media.sse.{EventSource, InboundEvent, EventListener}
+import org.glassfish.jersey.client.{ClientConfig, ClientProperties, JerseyClientBuilder}
+import org.glassfish.jersey.media.sse.{EventListener, EventSource, InboundEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import akka.actor.{ActorRef, Props, AbstractLoggingActor, Actor}
-import org.glassfish.jersey.client.{JerseyClientBuilder, ClientProperties, ClientConfig, JerseyClient}
-
-import scala.concurrent.{Future, Await}
-import scala.util.{Try, Failure, Success}
-
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success, Try}
 
 case object CheckConnection
 case object CloseConnection
 case object OpenConnection
 
-class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider{
+class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider with FutureSupport{
 
   override protected val notificationActor: ActorRef = context.actorOf(PulseNotificationActor.props())
+
+  private implicit val timeout = Timeout(5 seconds)
 
   private val decoder = new ElasticEventDecoder()
 
@@ -73,20 +73,24 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
         target.request().head()
       }
 
+      Await.ready(fut, 2 seconds)
 
-      Try(Await.result(fut, 2 seconds)) match {
+      fut.value.get match {
+
         case Failure(_) =>
           if (eventSource.isDefined && eventSource.get.isOpen) {
             eventSource.get.close
             eventSource = Option.empty
           }
           exception(UnableToConnect(streamUrl))
+
         case Success(resp) if resp.getHeaderString("X-Vamp-Stream") != null =>
           if(eventSource.isEmpty && isOpen){
             eventSource = buildEventSource
             eventSource.get.open()
             log.info(message(ConnectionSuccessful(streamUrl)))
           }
+
         case _ => exception(NotStream(streamUrl))
       }
 

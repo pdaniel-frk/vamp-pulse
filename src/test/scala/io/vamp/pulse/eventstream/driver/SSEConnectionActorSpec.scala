@@ -1,9 +1,9 @@
 package io.vamp.pulse.eventstream.driver
 
-import akka.actor.{DeadLetter, ActorSystem}
+import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{Matchers, FlatSpecLike, FlatSpec}
+import org.scalatest.{FlatSpecLike, Matchers}
 
 /**
  * Created by lazycoder on 16/03/15.

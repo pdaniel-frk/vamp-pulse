@@ -1,23 +1,18 @@
 package io.vamp.pulse.api
 
+import io.vamp.pulse.eventstream.message.ElasticEvent._
 import io.vamp.pulse.eventstream.message.{ElasticEvent, Event, Metric}
-import ElasticEvent._
-import io.vamp.pulse.eventstream.message.Event
-import io.vamp.pulse.storage.engine.{AggregationResult, ResultList, ElasticEventDAO}
-import io.vamp.pulse.eventstream.message.{Event, Metric}
+import io.vamp.pulse.storage.engine.{AggregationResult, ElasticEventDAO, ResultList}
 import io.vamp.pulse.util.Serializers
 import org.elasticsearch.action.index.IndexResponse
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
 import spray.http.HttpHeaders.{RawHeader, `Cache-Control`}
 import spray.http.MediaTypes._
-import spray.http.StatusCodes._
-import scala.util.{Failure, Success}
-import spray.http.StatusCodes.{Success => SuccessCode}
+import spray.http.StatusCodes.{Success => SuccessCode, _}
 import spray.httpx.Json4sSupport
 import spray.routing.Directives._
 import spray.routing.Route
-import org.json4s.native.JsonMethods._
 
 import scala.concurrent.ExecutionContext
 

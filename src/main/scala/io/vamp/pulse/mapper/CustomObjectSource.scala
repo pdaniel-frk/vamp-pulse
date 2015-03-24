@@ -3,11 +3,6 @@ package io.vamp.pulse.mapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.sksamuel.elastic4s.source.DocumentSource
-import io.vamp.pulse.util.Serializers
-
-import org.json4s.native.Serialization.{read, write}
-import org.json4s._
-import Serializers._
 
 class CustomObjectSource(any: Any) extends DocumentSource {
   override def json: String =

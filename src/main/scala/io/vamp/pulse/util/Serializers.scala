@@ -2,9 +2,9 @@ package io.vamp.pulse.util
 
 import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
 import java.time.{Instant, OffsetDateTime, ZoneId}
+
 import io.vamp.pulse.eventstream.message.EventType
-import EventType.EventType
-import io.vamp.pulse.eventstream.message.EventType
+import io.vamp.pulse.eventstream.message.EventType.EventType
 import org.json4s.JsonAST.{JNull, JString}
 import org.json4s._
 

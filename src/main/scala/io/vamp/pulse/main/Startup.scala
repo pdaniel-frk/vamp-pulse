@@ -8,11 +8,11 @@ import akka.stream.scaladsl.{PropsSource, Sink, Source}
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import io.vamp.pulse.eventstream.driver.{KafkaDriver, SseDriver, Driver}
+import io.vamp.pulse.eventstream.driver.{Driver, KafkaDriver, SseDriver}
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import io.vamp.pulse.eventstream.producer.{KafkaMetricsPublisher, SSEMetricsPublisher}
 import io.vamp.pulse.storage.client.ESApi
-import io.vamp.pulse.storage.engine.{ElasticEventDAO, ESLocalServer}
+import io.vamp.pulse.storage.engine.{ESLocalServer, ElasticEventDAO}
 import org.json4s._
 import org.json4s.native.Serialization
 import org.slf4j.LoggerFactory

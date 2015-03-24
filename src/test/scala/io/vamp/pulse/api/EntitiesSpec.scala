@@ -1,8 +1,7 @@
 package io.vamp.pulse.api
 
-import io.vamp.pulse.eventstream.message.Event
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
-import io.vamp.pulse.eventstream.message.{Event, ElasticEvent, Metric}
+import io.vamp.pulse.eventstream.message.{ElasticEvent, Event, Metric}
 import io.vamp.pulse.util.Serializers
 import org.json4s.native.JsonMethods._
 import org.scalatest.{FlatSpec, Matchers}

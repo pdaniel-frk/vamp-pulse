@@ -3,15 +3,12 @@ package io.vamp.pulse.storage.engine
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
-import io.vamp.pulse.api.Aggregator
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import io.vamp.pulse.api.{Aggregator, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import io.vamp.pulse.eventstream.notification.MappingErrorNotification
 import io.vamp.pulse.mapper.CustomObjectSource
 import io.vamp.pulse.util.Serializers
-import org.elasticsearch.action.index.IndexResponse
-import scala.concurrent.duration._
 import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
@@ -21,8 +18,8 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 
 import scala.collection.mutable.Queue
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Success, Failure}
 
 final case class ResultList(list: List[ElasticEvent])
 final case class AggregationResult(map: Map[String, Double])

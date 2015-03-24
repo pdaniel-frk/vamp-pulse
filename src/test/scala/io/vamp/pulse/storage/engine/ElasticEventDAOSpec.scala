@@ -1,7 +1,6 @@
 package io.vamp.pulse.storage.engine
 
 import com.typesafe.config.ConfigFactory
-import io.vamp.pulse.eventstream.message.Event
 import io.vamp.pulse.api.EventQuery
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.vamp.pulse.storage.client.ESApi

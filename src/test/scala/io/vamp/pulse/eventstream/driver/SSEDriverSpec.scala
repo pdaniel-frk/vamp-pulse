@@ -3,7 +3,6 @@ package io.vamp.pulse.eventstream.driver
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
-import io.vamp.pulse.eventstream.message.Event
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Matchers, WordSpecLike}
 
