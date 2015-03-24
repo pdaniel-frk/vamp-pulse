@@ -36,7 +36,7 @@ object Startup extends App {
   private val esConf = config.getConfig("storage.es")
   private var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
   private val esClusterName = esConf.getString("cluster.name")
-  private implicit val esClient = ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
+  private lazy implicit val esClient = ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
 
   private val metricDao = new ElasticEventDAO
 
