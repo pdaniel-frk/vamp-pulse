@@ -10,7 +10,7 @@ scalaVersion := "2.11.5"
 
 publishMavenStyle := true
 
-description := """Pulse provides means of event storage/aggregation, consumes streams via rest api, kafka and sse."""
+description := """Pulse provides means of event storage/aggregation, consumes events via rest api, kafka and sse."""
 
 
 pomExtra := (<url>http://vamp.io</url>
