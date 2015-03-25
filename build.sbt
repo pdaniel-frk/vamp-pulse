@@ -4,7 +4,7 @@ organization := "io.vamp"
 
 name := """pulse"""
 
-version := "0.7.0-RC1"
+version := "0.7.0-RC2"
 
 scalaVersion := "2.11.5"
 
