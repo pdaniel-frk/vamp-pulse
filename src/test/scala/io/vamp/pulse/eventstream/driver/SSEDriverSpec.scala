@@ -6,8 +6,9 @@ import com.typesafe.config.ConfigFactory
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Matchers, WordSpecLike}
 
+import org.scalatest.Ignore
 
-class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)
+@Ignore class SSEDriverSpec(_system: ActorSystem) extends TestKit(_system)
                         with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfter with ImplicitSender{
   
   def this() = this(ActorSystem("Drivers"))
