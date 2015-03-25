@@ -50,11 +50,15 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   }
 
   def batchInsert(eventList: Seq[ElasticEvent]) = {
+    batchInsertFuture(eventList) await
+  }
+
+  def batchInsertFuture(eventList: Seq[ElasticEvent]) = {
     client.execute {
       bulk(
         eventList.map(event => insertQuery(event))
       )
-    } . await
+    }
   }
 
 
