@@ -11,8 +11,12 @@ class SSESupervisionActor(streamUrl: String, producerRef: ActorRef) extends Acto
 
   private val child = context.actorOf(SSEConnectionActor.props(streamUrl, producerRef))
 
+  private var ticker: Option[Cancellable] = Option.empty
+
   private var isOpen = false
+
   context.watch(child)
+
 
 
   override def receive: Receive = {
@@ -27,7 +31,6 @@ class SSESupervisionActor(streamUrl: String, producerRef: ActorRef) extends Acto
       if(ticker.isDefined && !ticker.get.isCancelled) ticker.get.cancel()
   }
 
-  private var ticker: Option[Cancellable] = Option.empty
 }
 
 
