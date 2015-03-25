@@ -115,9 +115,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
         .get("filter_agg").asInstanceOf[InternalFilter]
         .getAggregations.get("val_agg").asInstanceOf[InternalNumericMetricsAggregation.SingleValue]
         .value()
-
-        //TODO: Wrapper for result types to check corner-cases
-        //TODO: Also might be a good idea not to use java api and map response json directly to whatever case classes we might have
+        
         if(value.isNaN || value.isInfinite) value = 0D
 
         AggregationResult(Map("value" -> value))

@@ -8,8 +8,7 @@ import com.sksamuel.elastic4s.source.DocumentSource
 class CustomObjectSource(any: Any) extends DocumentSource {
   override def json: String =
 
-  // TODO: Use only json4s module in the whole project
-  //
+
   // Json4s serialisation in order to be able to get rid of jackson
   // Unfortunately lacks implementation of JSR-310 compatibility
   //
