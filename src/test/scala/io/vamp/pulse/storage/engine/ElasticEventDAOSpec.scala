@@ -44,12 +44,12 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll 
     serverWrapper.stop
   }
 
-  "MetricDAO" should "be able to insert about 45000 metrics per second" in {
+  "MetricDAO" should "be able to insert about 25000 metrics per second in batches of 1000" in {
     val str = decoder.fromString(Source.fromURL(getClass.getResource("/metric.json")).mkString)
     val eventList = for(x <- 1 to 1000) yield str
-    val futures = for(x <- 1 to 10) yield dao.batchInsertFuture(eventList)
+    val futures = for(x <- 1 to 100) yield dao.batchInsertFuture(eventList)
 
-    val res = Await.result(sequentialExecution(futures), 2500 millis)
+    val res = Await.result(sequentialExecution(futures), 4000 millis)
 
     res shouldBe a[List[_]]
 
