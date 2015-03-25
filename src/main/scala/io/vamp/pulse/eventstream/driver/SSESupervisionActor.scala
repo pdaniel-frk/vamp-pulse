@@ -17,9 +17,10 @@ class SSESupervisionActor(streamUrl: String, producerRef: ActorRef) extends Acto
 
   override def receive: Receive = {
     case OpenConnection => isOpen = true
-      ticker = Option(
-        context.system.scheduler.schedule(0 milliseconds, 2000 milliseconds, child, OpenConnection)
-      )
+      if(!ticker.isDefined || ticker.get.isCancelled)
+        ticker = Option(
+          context.system.scheduler.schedule(0 milliseconds, 2000 milliseconds, child, OpenConnection)
+        )
 
     case CloseConnection => isOpen = false
       child forward CloseConnection
@@ -31,5 +32,5 @@ class SSESupervisionActor(streamUrl: String, producerRef: ActorRef) extends Acto
 
 
 object SSESupervisionActor {
-  def props(streamUrl: String, producerRef: ActorRef): Props = Props(new SSEConnectionActor(streamUrl, producerRef))
+  def props(streamUrl: String, producerRef: ActorRef): Props = Props(new SSESupervisionActor(streamUrl, producerRef))
 }

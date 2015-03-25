@@ -27,6 +27,8 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
   private val decoder = new ElasticEventDecoder()
 
 
+
+
   val target = {
     val conf: ClientConfig  = new ClientConfig()
     conf.property(ClientProperties.CONNECT_TIMEOUT, config.getInt("http.connect"))
@@ -57,16 +59,21 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
   private var isOpen: Boolean = false
 
   override def receive: Receive = {
-    case CloseConnection if isOpen => isOpen = false
+
+    case CloseConnection if isOpen =>
+      log.debug("closing sse connection")
+      isOpen = false
       if(eventSource.isDefined && eventSource.get.isOpen) {
         eventSource.get.close()
         eventSource = Option.empty
       }
-    case OpenConnection if !isOpen => {
+
+    case OpenConnection if !isOpen =>
+      log.debug("opening sse connection")
       isOpen = true
       self ! CheckConnection
-    }
-    case CheckConnection => {
+
+    case CheckConnection =>
       val fut = Future {
         target.request().head()
       }
@@ -95,7 +102,7 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
 
       if(isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)
 
-    }
+
   }
 }
 
