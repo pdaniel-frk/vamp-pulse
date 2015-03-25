@@ -1,12 +1,12 @@
-package io.vamp.pulse.storage.engine
+package io.vamp.pulse.storage.engine.dao
 
 import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.FutureSupport
 import io.vamp.pulse.api.EventQuery
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
-import io.vamp.pulse.storage.client.ESApi
-import io.vamp.pulse.storage.dao.{AggregationResult, ResultList, ElasticEventDAO}
+import io.vamp.pulse.storage.dao.{AggregationResult, ElasticEventDAO, ResultList}
+import io.vamp.pulse.storage.engine.ESLocalServer
 import io.vamp.pulse.util.Serializers
 import org.elasticsearch.node.Node
 import org.json4s.native.JsonMethods._
