@@ -2,7 +2,7 @@ package io.vamp.pulse.storage.engine
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.FieldType._
-import com.sksamuel.elastic4s.{ElasticClient, FilterDefinition, QueryDefinition, SearchType}
+import com.sksamuel.elastic4s._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import io.vamp.pulse.api.{Aggregator, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent
@@ -26,6 +26,8 @@ final case class AggregationResult(map: Map[String, Double])
 
 class ElasticEventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext)
   extends LoggingNotificationProvider with DefaultPackageMessageResolverProvider{
+  import CustomObjectSource._
+
 
   private val eventEntity = "event"
   private val eventIndex = "events"
@@ -33,16 +35,26 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   implicit val formats = Serializers.formats
 
   def insert(event: ElasticEvent) = {
-    import CustomObjectSource._
-
     client.execute {
-        index into s"$eventIndex/$eventEntity" doc event
+        insertQuery(event)
     } recoverWith  {
       case e: RemoteTransportException => e.getCause match {
         case t: MapperParsingException => throw exception(MappingErrorNotification(e.getCause, event.properties.objectType))
       }
     }
 
+  }
+
+  private def insertQuery(event: ElasticEvent): IndexDefinition = {
+    index into s"$eventIndex/$eventEntity" doc event
+  }
+
+  def batchInsert(eventList: Seq[ElasticEvent]) = {
+    client.execute {
+      bulk(
+        eventList.map(event => insertQuery(event))
+      )
+    } . await
   }
 
 
@@ -115,7 +127,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
         .get("filter_agg").asInstanceOf[InternalFilter]
         .getAggregations.get("val_agg").asInstanceOf[InternalNumericMetricsAggregation.SingleValue]
         .value()
-        
+
         if(value.isNaN || value.isInfinite) value = 0D
 
         AggregationResult(Map("value" -> value))

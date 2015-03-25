@@ -69,12 +69,9 @@ object Startup extends App {
 
     val (metricManagerSource: PropsSource[ElasticEvent], driver: Driver) = initSourceAndDriver
 
-    val materializedMap = metricManagerSource
-      .to(Sink.foreach(elem =>  {
-      // TODO: This needs to turn into parallel/bulk insert since otherwise it's too slow.
-      // I guess we should actually make use of some MQ in order to consume SSE streams.
-      eventDao.insert(elem)
-    })).run()
+    val materializedMap = metricManagerSource.groupedWithin(1000, 1 millis)
+      .map { eventList => eventDao.batchInsert(eventList); eventList }
+      .to(Sink.ignore).run()
 
     driver.start(materializedMap.get(metricManagerSource), system)
 

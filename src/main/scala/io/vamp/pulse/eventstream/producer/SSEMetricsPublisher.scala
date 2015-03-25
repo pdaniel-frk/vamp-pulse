@@ -24,7 +24,7 @@ object SSEMetricsPublisher {
 class SSEMetricsPublisher extends ActorPublisher[ElasticEvent]  {
   import akka.stream.actor.ActorPublisherMessage._
 
-  val maxBufSize = 1000
+  val maxBufSize = 10000
   var buf = Vector.empty[ElasticEvent]
 
   override def receive: Receive = {
