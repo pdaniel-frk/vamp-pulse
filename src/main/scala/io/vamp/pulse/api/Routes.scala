@@ -2,7 +2,10 @@ package io.vamp.pulse.api
 
 import io.vamp.pulse.eventstream.message.ElasticEvent._
 import io.vamp.pulse.eventstream.message.{Event, Metric}
-import io.vamp.pulse.storage.engine.{AggregationResult, ElasticEventDAO, ResultList}
+import io.vamp.pulse.storage.dao.ElasticEventDAO
+import io.vamp.pulse.storage.dao.AggregationResult
+import io.vamp.pulse.storage.dao.ResultList
+
 import io.vamp.pulse.util.Serializers
 import org.elasticsearch.action.index.IndexResponse
 import org.json4s._

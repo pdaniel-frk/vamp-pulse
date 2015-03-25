@@ -13,7 +13,8 @@ import io.vamp.pulse.eventstream.driver.{Driver, KafkaDriver, SseDriver}
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import io.vamp.pulse.eventstream.producer.{KafkaMetricsPublisher, SSEMetricsPublisher}
 import io.vamp.pulse.storage.client.ESApi
-import io.vamp.pulse.storage.engine.{ESLocalServer, ElasticEventDAO}
+import io.vamp.pulse.storage.dao.ElasticEventDAO
+import io.vamp.pulse.storage.engine.ESLocalServer
 import org.json4s._
 import org.json4s.native.Serialization
 import org.slf4j.LoggerFactory

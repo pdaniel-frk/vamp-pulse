@@ -1,8 +1,8 @@
-package io.vamp.pulse.storage.engine
+package io.vamp.pulse.storage.dao
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s._
+import com.sksamuel.elastic4s.mappings.FieldType._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import io.vamp.pulse.api.{Aggregator, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent
