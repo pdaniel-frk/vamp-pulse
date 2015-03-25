@@ -24,7 +24,7 @@ class SSESupervisionActor(streamUrl: String, producerRef: ActorRef) extends Acto
 
     case CloseConnection => isOpen = false
       child forward CloseConnection
-      if(ticker.isDefined) ticker.get.cancel()
+      if(ticker.isDefined && !ticker.get.isCancelled) ticker.get.cancel()
   }
 
   private var ticker: Option[Cancellable] = Option.empty
