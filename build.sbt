@@ -23,7 +23,7 @@ pomExtra := (<url>http://vamp.io</url>
     <developers>
       <developer>
         <name>Roman Useinov</name>
-        <email>roman@mangetic.io</email>
+        <email>roman@magnetic.io</email>
         <organization>VAMP</organization>
         <organizationUrl>http://vamp.io</organizationUrl>
       </developer>
