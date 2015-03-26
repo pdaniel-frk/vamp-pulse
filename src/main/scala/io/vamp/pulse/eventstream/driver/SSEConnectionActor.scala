@@ -3,7 +3,6 @@ package io.vamp.pulse.eventstream.driver
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{AbstractLoggingActor, ActorRef, Props}
-import io.vamp.common.akka.FutureSupport
 
 import io.vamp.pulse.configuration.{TimeoutConfigurationProvider, PulseActorLoggingNotificationProvider, PulseNotificationActor}
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder

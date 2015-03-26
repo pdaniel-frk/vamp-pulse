@@ -121,6 +121,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
             case "average" => aggregation avg "val_agg" field aggField
             case "min" => aggregation min  "val_agg" field aggField
             case "max" => aggregation max  "val_agg" field aggField
+            case "count" => aggregation count "val_agg" field aggField
             case str: String => throw new Exception(s"No such aggregation implemented $str")
           }
         }
