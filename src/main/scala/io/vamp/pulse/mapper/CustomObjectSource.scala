@@ -6,14 +6,7 @@ import com.sksamuel.elastic4s.source.DocumentSource
 
 
 class CustomObjectSource(any: Any) extends DocumentSource {
-  override def json: String =
-
-
-  // Json4s serialisation in order to be able to get rid of jackson
-  // Unfortunately lacks implementation of JSR-310 compatibility
-  //
-  // write(Extraction.decompose(any))
-    CustomObjectSource.mapper.writeValueAsString(any)
+  override def json: String = CustomObjectSource.mapper.writeValueAsString(any)
 }
 
 object CustomObjectSource {
