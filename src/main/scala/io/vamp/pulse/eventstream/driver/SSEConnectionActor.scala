@@ -13,14 +13,15 @@ import org.glassfish.jersey.media.sse.{EventListener, EventSource, InboundEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
+
+import scala.concurrent.blocking
 
 case object CheckConnection
 case object CloseConnection
 case object OpenConnection
 
-class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider with FutureSupport with TimeoutConfigurationProvider{
+class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider with TimeoutConfigurationProvider {
 
   override protected val notificationActor: ActorRef = context.actorOf(PulseNotificationActor.props())
 
@@ -74,11 +75,11 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
       self ! CheckConnection
 
     case CheckConnection =>
-      val fut = Future {
-        target.request().head()
-      }
-
-      val result = Try(Await.result(fut, config.getInt("http.connect") millis))
+      val result = Try(
+        blocking {
+          target.request().head()
+        }
+      )
 
       result match {
 
