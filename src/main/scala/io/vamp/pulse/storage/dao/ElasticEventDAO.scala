@@ -66,7 +66,9 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
     if(eventQuery.aggregator.isEmpty) {
       getPlainEvents(eventQuery)
     } else {
-      getAggregateEvents(eventQuery)
+      if(eventQuery.aggregator.get.`type` == "count") {
+        getCount(eventQuery)
+      } else getAggregateEvents(eventQuery)
     }
   }
   
@@ -95,7 +97,30 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
     }
   }
 
-  def getAggregateEvents(metricQuery: EventQuery) = {
+  private def getCount(eventQuery: EventQuery) = {
+    val tagNum = eventQuery.tags.length
+
+    val queries: Queue[QueryDefinition] = Queue(
+      rangeQuery("timestamp") from eventQuery.time.from.toEpochSecond to eventQuery.time.to.toEpochSecond
+    )
+
+    if(tagNum > 0) queries += termsQuery("tags", eventQuery.tags:_*) minimumShouldMatch(tagNum)
+
+    if(!eventQuery.`type`.isEmpty) queries += termQuery("properties.objectType", eventQuery.`type`)
+
+    client.execute {
+      search in eventIndex -> eventEntity query {
+        must  (
+          queries
+        )
+      } 
+    } map {
+      resp => AggregationResult(Map("value" -> resp.getHits.getTotalHits))
+    }
+  }
+
+
+  private def getAggregateEvents(metricQuery: EventQuery) = {
 
     val filters: Queue[FilterDefinition] = Queue(
       rangeFilter("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
