@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 import io.vamp.pulse.api.Event
 import io.vamp.pulse.util.Serializers
-import org.json4s.DefaultFormats
 import org.json4s.ext.EnumNameSerializer
 
 import scala.util.Try

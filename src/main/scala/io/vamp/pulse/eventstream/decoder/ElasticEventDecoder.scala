@@ -1,7 +1,6 @@
 package io.vamp.pulse.eventstream.decoder
 
 import io.vamp.pulse.api.Event
-import io.vamp.pulse.configuration.DefaultNotification
 import io.vamp.pulse.configuration.DefaultNotification._
 import io.vamp.pulse.eventstream.message.ElasticEvent._
 import io.vamp.pulse.eventstream.message.{ElasticEvent, Metric}

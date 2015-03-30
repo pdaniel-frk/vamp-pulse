@@ -3,8 +3,7 @@ package io.vamp.pulse.eventstream.driver
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Matchers, WordSpecLike}
-import org.scalatest.Ignore
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Ignore, Matchers, WordSpecLike}
 
 @Ignore class KafkaDriverSpec(_system: ActorSystem) extends TestKit(_system)
 with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfter with ImplicitSender {

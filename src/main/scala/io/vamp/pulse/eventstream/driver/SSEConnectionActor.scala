@@ -3,18 +3,16 @@ package io.vamp.pulse.eventstream.driver
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{AbstractLoggingActor, ActorRef, Props}
-
-import io.vamp.pulse.configuration.{TimeoutConfigurationProvider, PulseActorLoggingNotificationProvider, PulseNotificationActor}
+import io.vamp.pulse.configuration.{PulseActorLoggingNotificationProvider, PulseNotificationActor, TimeoutConfigurationProvider}
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.vamp.pulse.eventstream.notification.{ConnectionSuccessful, NotStream, UnableToConnect}
 import org.glassfish.jersey.client.{ClientConfig, ClientProperties, JerseyClientBuilder}
 import org.glassfish.jersey.media.sse.{EventListener, EventSource, InboundEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.blocking
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-
-import scala.concurrent.blocking
 
 case object CheckConnection
 case object CloseConnection

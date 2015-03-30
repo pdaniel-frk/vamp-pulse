@@ -20,7 +20,6 @@ import org.json4s.native.Serialization
 import org.slf4j.LoggerFactory
 import spray.can.Http
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 

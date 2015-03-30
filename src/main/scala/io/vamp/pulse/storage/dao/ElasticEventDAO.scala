@@ -5,11 +5,10 @@ import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import io.vamp.pulse.api.AggregatorType.AggregatorType
-import io.vamp.pulse.api.{AggregatorType, Aggregator, EventQuery}
+import io.vamp.pulse.api.{Aggregator, AggregatorType, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import io.vamp.pulse.eventstream.notification.MappingErrorNotification
 import io.vamp.pulse.mapper.CustomObjectSource
-import io.vamp.pulse.util.Serializers
 import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
