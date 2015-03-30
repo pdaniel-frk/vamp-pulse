@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
+import io.vamp.pulse.api.Event
 
 import scala.util.Try
 
@@ -37,7 +38,7 @@ final case class EventProperties(@JsonScalaEnumeration(classOf[EventTypeRef])`ty
 
 
 
-final case class Event(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime = OffsetDateTime.now(), `type`: String = "")
+
 
 object ElasticEvent {
   implicit def metricToElasticEvent(metric: Metric): ElasticEvent = {

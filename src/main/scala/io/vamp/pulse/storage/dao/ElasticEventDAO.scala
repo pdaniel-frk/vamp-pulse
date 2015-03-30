@@ -4,7 +4,9 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
-import io.vamp.pulse.api.{Aggregator, EventQuery}
+import io.vamp.pulse.api.AggregatorType
+import io.vamp.pulse.api.AggregatorType.AggregatorType
+import io.vamp.pulse.api.{AggregatorType, Aggregator, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import io.vamp.pulse.eventstream.notification.MappingErrorNotification
 import io.vamp.pulse.mapper.CustomObjectSource
@@ -66,7 +68,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
     if(eventQuery.aggregator.isEmpty) {
       getPlainEvents(eventQuery)
     } else {
-      if(eventQuery.aggregator.get.`type` == "count") {
+      if(eventQuery.aggregator.get.`type` == AggregatorType.count) {
         getCount(eventQuery)
       } else getAggregateEvents(eventQuery)
     }
@@ -130,7 +132,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
     if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution "and"
 
-    val aggregator = metricQuery.aggregator.getOrElse(Aggregator("average"))
+    val aggregator = metricQuery.aggregator.getOrElse(Aggregator(AggregatorType.average))
 
     val aggFieldParts = List("value", metricQuery.`type`, aggregator.field)
 
@@ -143,11 +145,10 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
           must(filters)
         } aggs {
           aggregator.`type` match {
-            case "average" => aggregation avg "val_agg" field aggField
-            case "min" => aggregation min  "val_agg" field aggField
-            case "max" => aggregation max  "val_agg" field aggField
-            case "count" => aggregation count "val_agg" field aggField
-            case str: String => throw new Exception(s"No such aggregation implemented $str")
+            case AggregatorType.average => aggregation avg "val_agg" field aggField
+            case AggregatorType.min => aggregation min  "val_agg" field aggField
+            case AggregatorType.max => aggregation max  "val_agg" field aggField
+            case t: AggregatorType => throw new Exception(s"No such aggregation implemented $t")
           }
         }
       }

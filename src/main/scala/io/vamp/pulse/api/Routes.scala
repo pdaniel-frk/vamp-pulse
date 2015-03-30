@@ -1,7 +1,7 @@
 package io.vamp.pulse.api
 
 import io.vamp.pulse.eventstream.message.ElasticEvent._
-import io.vamp.pulse.eventstream.message.{Event, Metric}
+import io.vamp.pulse.eventstream.message.Metric
 import io.vamp.pulse.storage.dao.ElasticEventDAO
 import io.vamp.pulse.storage.dao.AggregationResult
 import io.vamp.pulse.storage.dao.ResultList
