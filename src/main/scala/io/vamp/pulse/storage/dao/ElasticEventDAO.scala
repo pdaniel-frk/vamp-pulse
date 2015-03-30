@@ -102,27 +102,17 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   }
 
 
-  private def getAggregateEvents(metricQuery: EventQuery) = {
-
-    val filters: Queue[FilterDefinition] = Queue(
-      rangeFilter("timestamp") from metricQuery.time.from.toEpochSecond to metricQuery.time.to.toEpochSecond
-    )
-
-    if(!metricQuery.`type`.isEmpty) filters += termFilter("properties.objectType", metricQuery.`type`)
-
-    if(!metricQuery.tags.isEmpty) filters += termsFilter("tags", metricQuery.tags :_*) execution "and"
-
-    val aggregator = metricQuery.aggregator.getOrElse(Aggregator(AggregatorType.average))
-
-    val aggFieldParts = List("value", metricQuery.`type`, aggregator.field)
-
+  private def getAggregateEvents(eventQuery: EventQuery) = {
+    val aggregator = eventQuery.aggregator.getOrElse(Aggregator(AggregatorType.average))
+    val aggFieldParts = List("value", eventQuery.`type`, aggregator.field)
     val aggField = aggFieldParts.filter(p => !p.isEmpty).mkString(".")
+    val qFilter = queryFilter(must(constructQuery(eventQuery)))
 
 
     client.execute {
       search  in eventIndex -> eventEntity searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
-          must(filters)
+          qFilter
         } aggs {
           aggregator.`type` match {
             case AggregatorType.average => aggregation avg "val_agg" field aggField
