@@ -35,6 +35,7 @@ pomExtra := (<url>http://vamp.io</url>
     </scm>
   )
 
+val json4sV = "3.2.11"
 
 
 
@@ -65,9 +66,13 @@ libraryDependencies ++= Seq(
   "io.spray" %% "spray-util" % "1.3.2",
   "io.spray" %% "spray-io" % "1.3.2",
   "io.spray" %% "spray-routing" % "1.3.2",
+  "io.spray" %% "spray-can" % "1.3.2",
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
   "com.sksamuel.elastic4s" %% "elastic4s" % "1.4.12",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0",
   "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % "2.5.0",
-  "org.slf4j" % "slf4j-simple" % "1.7.10"
+  "org.slf4j" % "slf4j-simple" % "1.7.10",
+  "org.json4s" %% "json4s-core" % json4sV,
+  "org.json4s" %% "json4s-ext" % json4sV,
+  "org.json4s" %% "json4s-native" % json4sV
 )

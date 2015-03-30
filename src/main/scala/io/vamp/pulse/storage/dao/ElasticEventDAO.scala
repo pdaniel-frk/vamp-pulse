@@ -4,7 +4,6 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
-import io.vamp.pulse.api.AggregatorType
 import io.vamp.pulse.api.AggregatorType.AggregatorType
 import io.vamp.pulse.api.{AggregatorType, Aggregator, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent
@@ -34,7 +33,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   private val eventEntity = "event"
   private val eventIndex = "events"
 
-  implicit val formats = Serializers.formats
+  implicit val formats = ElasticEvent.formats
 
   def insert(event: ElasticEvent) = {
     client.execute {
@@ -65,17 +64,18 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
 
   def getEvents(eventQuery: EventQuery): Future[Any] = {
-    if(eventQuery.aggregator.isEmpty) {
-      getPlainEvents(eventQuery)
-    } else {
-      if(eventQuery.aggregator.get.`type` == AggregatorType.count) {
-        getCount(eventQuery)
-      } else getAggregateEvents(eventQuery)
+    eventQuery.aggregator match {
+      case None => getPlainEvents(eventQuery) map {
+        resp => ResultList(List(resp.getHits.hits().map((hit) =>  parse(hit.sourceAsString()).extract[ElasticEvent]): _*))
+      }
+      case Some(x: Aggregator) if x.`type` == AggregatorType.count => getPlainEvents(eventQuery) map {
+        resp => AggregationResult(Map("value" -> resp.getHits.getTotalHits))
+      }
+      case Some(x: Aggregator) if x.`type` != AggregatorType.count => getAggregateEvents(eventQuery)
     }
   }
-  
 
-  private def getPlainEvents(eventQuery: EventQuery) = {
+  private def constructQuery(eventQuery: EventQuery) = {
     val tagNum = eventQuery.tags.length
 
     val queries: Queue[QueryDefinition] = Queue(
@@ -86,38 +86,18 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
     if(!eventQuery.`type`.isEmpty) queries += termQuery("properties.objectType", eventQuery.`type`)
 
+    queries
+  }
+
+  private def getPlainEvents(eventQuery: EventQuery) = {
     client.execute {
       search in eventIndex -> eventEntity query {
         must  (
-          queries
+          constructQuery(eventQuery)
         )
       } sort (
         by field "timestamp" order SortOrder.DESC
       ) start 0 limit 30
-    } map {
-      resp => ResultList(List(resp.getHits.hits().map((hit) =>  parse(hit.sourceAsString()).extract[ElasticEvent]): _*))
-    }
-  }
-
-  private def getCount(eventQuery: EventQuery) = {
-    val tagNum = eventQuery.tags.length
-
-    val queries: Queue[QueryDefinition] = Queue(
-      rangeQuery("timestamp") from eventQuery.time.from.toEpochSecond to eventQuery.time.to.toEpochSecond
-    )
-
-    if(tagNum > 0) queries += termsQuery("tags", eventQuery.tags:_*) minimumShouldMatch(tagNum)
-
-    if(!eventQuery.`type`.isEmpty) queries += termQuery("properties.objectType", eventQuery.`type`)
-
-    client.execute {
-      search in eventIndex -> eventEntity query {
-        must  (
-          queries
-        )
-      } 
-    } map {
-      resp => AggregationResult(Map("value" -> resp.getHits.getTotalHits))
     }
   }
 
