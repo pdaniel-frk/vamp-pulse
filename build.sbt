@@ -36,8 +36,10 @@ pomExtra := (<url>http://vamp.io</url>
   )
 
 val json4sV = "3.2.11"
-
-
+val sprayV = "1.3.2"
+val jerseyV = "2.15"
+val vampV = "0.7.0-RC2"
+val jacksonV = "2.5.0"
 
 resolvers ++= Seq(
   "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
@@ -51,26 +53,26 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M3",
   "org.scala-lang.modules" %% "scala-async" % "0.9.2",
-  "org.glassfish.jersey.core" % "jersey-client" % "2.15",
-  "org.glassfish.jersey.media" % "jersey-media-sse" % "2.15",
+  "org.glassfish.jersey.core" % "jersey-client" % jerseyV,
+  "org.glassfish.jersey.media" % "jersey-media-sse" % jerseyV,
   "com.typesafe" % "config" % "1.2.1",
   "com.sclasen" %% "akka-kafka" % "0.1.0",
   "org.elasticsearch" % "elasticsearch" % "1.4.3",
   "commons-io" % "commons-io" % "2.4",
   "org.scalatest" %% "scalatest" % "3.0.0-SNAP4" % "test",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
-  "io.vamp" %% "common" % "0.7.0-RC2",
-  "io.vamp" %% "pulse-api" % "0.7.0-RC2",
-  "io.spray" %% "spray-can" % "1.3.2",
-  "io.spray" %% "spray-http" % "1.3.2",
-  "io.spray" %% "spray-util" % "1.3.2",
-  "io.spray" %% "spray-io" % "1.3.2",
-  "io.spray" %% "spray-routing" % "1.3.2",
-  "io.spray" %% "spray-can" % "1.3.2",
+  "io.vamp" %% "common" % vampV,
+  "io.vamp" %% "pulse-api" % vampV,
+  "io.spray" %% "spray-can" % sprayV,
+  "io.spray" %% "spray-http" % sprayV,
+  "io.spray" %% "spray-util" % sprayV,
+  "io.spray" %% "spray-io" % sprayV,
+  "io.spray" %% "spray-routing" % sprayV,
+  "io.spray" %% "spray-can" % sprayV,
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
   "com.sksamuel.elastic4s" %% "elastic4s" % "1.4.12",
-  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0",
-  "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % "2.5.0",
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonV,
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonV,
   "org.slf4j" % "slf4j-simple" % "1.7.10",
   "org.json4s" %% "json4s-core" % json4sV,
   "org.json4s" %% "json4s-ext" % json4sV,
