@@ -1,7 +1,7 @@
 Vamp Pulse
 ===============================
 [![Travis build badge](https://travis-ci.org/magneticio/vamp-pulse.svg?branch=master)](https://travis-ci.org/magneticio/vamp-pulse)
-
+[![Coverage Status](https://coveralls.io/repos/magneticio/vamp-pulse/badge.svg?branch=master)](https://coveralls.io/r/magneticio/vamp-pulse?branch=master)
 
 Pulse is a metric aggregation engine which allows you to store and aggregate events.   
 
