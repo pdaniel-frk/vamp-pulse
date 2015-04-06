@@ -19,12 +19,10 @@ What it does?
 
 How to use?
 
-There is still no artifact available in any of the maven repositories, so you would need:
 1. JDK 8 and sbt installed
-2. Check out our vamp-common repository and install it to your local maven repo, README for vamp-common could be found in the corresponding repo
 
 Here is a step by step guide to run this tool via sbt:   
-Configuration  `src/main/resources/application.conf`    
+Configuration  `src/main/resources/application.conf` could be copied from reference.conf and modified as needed.   
  First, a stream has to be configured
 
 ```
