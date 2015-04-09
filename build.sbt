@@ -1,10 +1,9 @@
-Revolver.settings
 
 organization := "io.vamp"
 
 name := """pulse"""
 
-version := "0.7.0-RC3"
+version := "0.7.0"
 
 scalaVersion := "2.11.5"
 
@@ -38,7 +37,7 @@ pomExtra := (<url>http://vamp.io</url>
 val json4sV = "3.2.11"
 val sprayV = "1.3.2"
 val jerseyV = "2.15"
-val vampV = "0.7.0-RC2"
+val vampV = "0.7.0.+"
 val jacksonV = "2.5.0"
 
 resolvers ++= Seq(
