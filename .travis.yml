@@ -10,11 +10,14 @@ script:
 - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 after_success:
 - sbt coveralls
-- test "${TRAVIS_PULL_REQUEST}" = 'false' &&
-  test "${TRAVIS_JDK_VERSION}" = 'oraclejdk8' &&
+- test ${TRAVIS_PULL_REQUEST} == "false" &&
+  test ${TRAVIS_BRANCH} == "develop" &&
   sh "$TRAVIS_BUILD_DIR/.travis-ci-bintray-credentials.sh" &&
   sbt 'set version := version.value + "." + System.getenv("TRAVIS_BUILD_NUMBER")' publish
-
+branches:
+  only:
+    - master
+    - develop
 notifications:
   slack:
     secure: BQ/FjW3DTlKEQCtvWl2FjxtXPSkWBNEi8ZEjmJri1N9upa1HcWa+nctlIEsEmNHNXo2t8jup/knH+RMnaGG31sGwrwsWwtUXp6+NMzCyW8VzKnnotfARmBpkh4YVflfaHww15IwTfP8lzhsKJm/leposjFxgWOmdwgAeOK6G0mg=
