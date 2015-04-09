@@ -1,5 +1,3 @@
-Revolver.settings
-
 organization := "io.vamp"
 
 name := """pulse"""
