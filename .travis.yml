@@ -10,6 +10,15 @@ script:
 - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 after_success:
 - sbt coveralls
+- test "${TRAVIS_PULL_REQUEST}" = 'false' &&
+  test "${TRAVIS_JDK_VERSION}" = 'oraclejdk8' &&
+  sh "$TRAVIS_BUILD_DIR/.travis-ci-bintray-credentials.sh" &&
+  sbt 'set version := version.value + "." + System.getenv("TRAVIS_BUILD_NUMBER")' publish
+
 notifications:
   slack:
     secure: BQ/FjW3DTlKEQCtvWl2FjxtXPSkWBNEi8ZEjmJri1N9upa1HcWa+nctlIEsEmNHNXo2t8jup/knH+RMnaGG31sGwrwsWwtUXp6+NMzCyW8VzKnnotfARmBpkh4YVflfaHww15IwTfP8lzhsKJm/leposjFxgWOmdwgAeOK6G0mg=
+env:
+  global:
+  - secure: oE+ySORldqDz2DrjQVhpiSq+/hFlRksg2y0pio6xTYwGsFE+lh/927Fvhc1v8dQXsWLf+F3aDRb0/ErLCY7Cqd4S6K7u7UL1+qyID+jFDWGVan3exX8G+WlZiE+1jsUU0xxMlkFM+V+buAFyLTcz393hZ6HUGyXP8+COh6r0oYc=
+  - secure: QA0noIhoP6SBuFKyqgkYBu4dkWj5OXXJ9V+68CmqUgPYUHtF76+Ty2oWUwHyoIGLA+CD/A/wJxbwVWjEUN6Ifbq8s2faBydTFNvtLeH/IJjiUXQHAv/fCBjhQXMFYLPULy5D6e6qOvtzc3PTLeYDSTxMBjXEfP268/Khr5svXPs=
