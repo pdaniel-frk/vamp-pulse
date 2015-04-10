@@ -1,5 +1,8 @@
 package io.vamp.pulse.api
 
+import akka.util.Timeout
+import io.vamp.common.akka.ExecutionContextProvider
+import io.vamp.common.vitals.JmxVitalsProvider
 import io.vamp.pulse.eventstream.message.ElasticEvent._
 import io.vamp.pulse.eventstream.message.Metric
 import io.vamp.pulse.storage.dao.{AggregationResult, ElasticEventDAO, ResultList}
@@ -15,60 +18,73 @@ import spray.routing.Directives._
 import spray.routing.Route
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
-class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport {
+class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport with JmxVitalsProvider with ExecutionContextProvider {
 
   protected def jsonResponse = respondWithMediaType(`application/json`) | respondWithHeaders(`Cache-Control`(`no-store`), RawHeader("Pragma", "no-cache"))
 
-  override implicit def json4sFormats: Formats =  Serializers.formats
+  override implicit def json4sFormats: Formats = Serializers.formats
+
+  implicit val timeout = Timeout(5 seconds)
 
   def route: Route = jsonResponse {
     pathPrefix("api" / "v1") {
-      path("events" / "reset") {
+      path("info") {
         pathEndOrSingleSlash {
           get {
-            requestEntityEmpty {
-              ctx => {
-                eventDao.cleanupEvents
-                ctx.complete(OK)
-              }
+            onSuccess(vitals) { info =>
+              complete(OK, info)
             }
           }
         }
       } ~
-      path("events" / "get") {
-        pathEndOrSingleSlash {
-          post {
-            entity(as[EventQuery]) {
-              request =>
-                onSuccess(eventDao.getEvents(request)) {
-                case ResultList(list) => complete(OK, list.map(_.convertOutput))
-                case AggregationResult(map) => complete(OK, map)
-                case _ => complete(BadRequest)
+        path("events" / "reset") {
+          pathEndOrSingleSlash {
+            get {
+              requestEntityEmpty {
+                ctx => {
+                  eventDao.cleanupEvents
+                  ctx.complete(OK)
+                }
               }
             }
           }
-        }
-      }  ~
-      path("events") {
-        pathEndOrSingleSlash {
-          post {
-            entity(as[Metric]) {
-              request => onSuccess(eventDao.insert(request)) {
-                case resp: IndexResponse => complete(Created, request)
+        } ~
+        path("events" / "get") {
+          pathEndOrSingleSlash {
+            post {
+              entity(as[EventQuery]) {
+                request =>
+                  onSuccess(eventDao.getEvents(request)) {
+                    case ResultList(list) => complete(OK, list.map(_.convertOutput))
+                    case AggregationResult(map) => complete(OK, map)
+                    case _ => complete(BadRequest)
+                  }
               }
             }
-          } ~
-          post {
-              entity(as[Event]) {
+          }
+        } ~
+        path("events") {
+          pathEndOrSingleSlash {
+            post {
+              entity(as[Metric]) {
                 request => onSuccess(eventDao.insert(request)) {
                   case resp: IndexResponse => complete(Created, request)
                 }
               }
+            } ~
+              post {
+                entity(as[Event]) {
+                  request => onSuccess(eventDao.insert(request)) {
+                    case resp: IndexResponse => complete(Created, request)
+                  }
+                }
+              }
           }
-        }
 
-      }
+        }
     }
   }
 
