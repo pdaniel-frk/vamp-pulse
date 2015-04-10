@@ -36,7 +36,7 @@ pomExtra := (<url>http://vamp.io</url>
 val json4sV = "3.2.11"
 val sprayV = "1.3.2"
 val jerseyV = "2.15"
-val vampCommonV = "0.7.0.+"
+val vampCommonV = "0.7.0+"
 val vampPulseApiV = "0.7.0.+"
 val jacksonV = "2.5.0"
 
@@ -44,7 +44,9 @@ resolvers ++= Seq(
   "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
   "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
   "spray repo" at "http://repo.spray.io",
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
+  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+  Resolver.jcenterRepo
+)
 
 
 libraryDependencies ++= Seq(
