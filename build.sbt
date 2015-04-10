@@ -1,12 +1,8 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> fa8cd207831399d44b687ebe1aafe76f2d49800d
 organization := "io.vamp"
 
 name := """pulse"""
 
-version := "0.7.0-RC3"
+version := "0.7.0"
 
 scalaVersion := "2.11.5"
 
@@ -40,8 +36,8 @@ pomExtra := (<url>http://vamp.io</url>
 val json4sV = "3.2.11"
 val sprayV = "1.3.2"
 val jerseyV = "2.15"
-val vampCommonV = "0.7.0-RC3"
-val vampPulseApiV = "0.7.0-RC3"
+val vampCommonV = "0.7.0.+"
+val vampPulseApiV = "0.7.0.+"
 val jacksonV = "2.5.0"
 
 resolvers ++= Seq(
