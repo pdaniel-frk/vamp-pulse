@@ -6,7 +6,7 @@ organization := "io.vamp"
 
 name := """pulse"""
 
-version := "0.7.0"
+version := "0.7.0-RC3"
 
 scalaVersion := "2.11.5"
 
@@ -40,7 +40,8 @@ pomExtra := (<url>http://vamp.io</url>
 val json4sV = "3.2.11"
 val sprayV = "1.3.2"
 val jerseyV = "2.15"
-val vampV = "0.7.0.+"
+val vampCommonV = "0.7.0-RC3"
+val vampPulseApiV = "0.7.0-RC3"
 val jacksonV = "2.5.0"
 
 resolvers ++= Seq(
@@ -61,8 +62,8 @@ libraryDependencies ++= Seq(
   "commons-io" % "commons-io" % "2.4",
   "org.scalatest" %% "scalatest" % "3.0.0-SNAP4" % "test",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
-  "io.vamp" %% "common" % vampV,
-  "io.vamp" %% "pulse-api" % vampV,
+  "io.vamp" %% "common" % vampCommonV,
+  "io.vamp" %% "pulse-api" % vampPulseApiV,
   "io.spray" %% "spray-can" % sprayV,
   "io.spray" %% "spray-http" % sprayV,
   "io.spray" %% "spray-util" % sprayV,
