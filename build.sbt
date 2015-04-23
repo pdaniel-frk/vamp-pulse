@@ -12,12 +12,6 @@ description := """Pulse is an event consumption/retrieval/aggregation applicatio
 
 
 pomExtra := (<url>http://vamp.io</url>
-    <licenses>
-      <license>
-        <name>The Apache License, Version 2.0</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      </license>
-    </licenses>
     <developers>
       <developer>
         <name>Roman Useinov</name>
