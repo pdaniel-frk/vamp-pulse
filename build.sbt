@@ -2,7 +2,7 @@ organization := "io.vamp"
 
 name := """pulse"""
 
-version := "0.7.0"
+version := "0.7.5"
 
 scalaVersion := "2.11.5"
 
@@ -36,9 +36,10 @@ pomExtra := (<url>http://vamp.io</url>
 val json4sV = "3.2.11"
 val sprayV = "1.3.2"
 val jerseyV = "2.15"
-val vampCommonV = "0.7.0.24"
-val vampPulseApiV = "0.7.0.23"
+val vampCommonV = "0.7.5"
+val vampPulseApiV = "0.7.5"
 val jacksonV = "2.5.0"
+val elasticV = "1.5.4"
 
 resolvers ++= Seq(
   "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
@@ -68,7 +69,7 @@ libraryDependencies ++= Seq(
   "io.spray" %% "spray-routing" % sprayV,
   "io.spray" %% "spray-can" % sprayV,
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
-  "com.sksamuel.elastic4s" %% "elastic4s" % "1.5.4",
+  "com.sksamuel.elastic4s" %% "elastic4s" % elasticV,
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonV,
   "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonV,
   "org.slf4j" % "slf4j-simple" % "1.7.10",
