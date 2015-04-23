@@ -4,7 +4,7 @@ name := """pulse"""
 
 version := "0.7.5"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 publishMavenStyle := true
 
@@ -85,3 +85,10 @@ bintray.Keys.repository in bintray.Keys.bintray := "vamp"
 licenses  += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 bintray.Keys.bintrayOrganization in bintray.Keys.bintray := Some("magnetic-io")
+
+assemblyMergeStrategy in assembly := {
+  case PathList("org", "joda", xs @ _*) => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
