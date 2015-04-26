@@ -1,6 +1,5 @@
 package io.vamp.pulse.eventstream.driver
 
-
 import akka.actor._
 
 import scala.concurrent.ExecutionContext.Implicits.global

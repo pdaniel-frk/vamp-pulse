@@ -11,7 +11,7 @@ import scala.io.Source
 /**
  * Created by lazycoder on 25/02/15.
  */
-class EntitiesSpec extends FlatSpec  with Matchers {
+class EntitiesSpec extends FlatSpec with Matchers {
   implicit val formats = Serializers.formats
   val decoder = new ElasticEventDecoder()
 
