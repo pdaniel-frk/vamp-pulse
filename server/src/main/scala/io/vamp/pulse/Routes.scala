@@ -1,8 +1,9 @@
-package io.vamp.pulse.api
+package io.vamp.pulse
 
 import akka.util.Timeout
 import io.vamp.common.akka.ExecutionContextProvider
 import io.vamp.common.vitals.JmxVitalsProvider
+import io.vamp.pulse.model.{Event, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent._
 import io.vamp.pulse.eventstream.message.Metric
 import io.vamp.pulse.storage.dao.{AggregationResult, ElasticEventDAO, ResultList}

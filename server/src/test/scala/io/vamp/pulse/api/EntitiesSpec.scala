@@ -2,6 +2,7 @@ package io.vamp.pulse.api
 
 import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
 import io.vamp.pulse.eventstream.message.{ElasticEvent, Metric}
+import io.vamp.pulse.model
 import io.vamp.pulse.util.Serializers
 import org.json4s.native.JsonMethods._
 import org.scalatest.{FlatSpec, Matchers}
@@ -17,9 +18,9 @@ class EntitiesSpec extends FlatSpec with Matchers {
 
   "MetricQuery" should "be able to be decoded from json" in {
     val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
-    val eventQuery = parse(str).extract[EventQuery]
+    val eventQuery = parse(str).extract[model.EventQuery]
 
-    eventQuery shouldBe an[EventQuery]
+    eventQuery shouldBe an[model.EventQuery]
   }
 
   "ElasticEvent" should "be able to be decoded from metric json" in {

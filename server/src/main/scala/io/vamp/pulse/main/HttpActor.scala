@@ -2,7 +2,7 @@ package io.vamp.pulse.main
 
 import akka.actor.{ActorLogging, Props}
 import io.vamp.common.notification.NotificationErrorException
-import io.vamp.pulse.api.Routes
+import io.vamp.pulse.Routes
 import io.vamp.pulse.storage.dao.ElasticEventDAO
 import spray.http.StatusCodes._
 import spray.http.{HttpRequest, HttpResponse, Timedout}

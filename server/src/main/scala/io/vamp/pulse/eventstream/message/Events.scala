@@ -4,11 +4,11 @@ import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
-import io.vamp.pulse.api.Event
+import io.vamp.pulse.model.Event
 import io.vamp.pulse.util.Serializers
 import org.json4s.ext.EnumNameSerializer
 
-import scala.language.postfixOps
+import scala.language.{implicitConversions, postfixOps}
 import scala.util.Try
 
 object EventType extends Enumeration {
@@ -21,10 +21,10 @@ import io.vamp.pulse.eventstream.message.EventType._
 class EventTypeRef extends TypeReference[EventType.type]
 
 
-final case class Metric(tags: Seq[String], value: Double, timestamp: OffsetDateTime = OffsetDateTime.now())
+final case class Metric(tags: Set[String], value: Double, timestamp: OffsetDateTime = OffsetDateTime.now())
 
 
-final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: OffsetDateTime, properties: EventProperties, blob: AnyRef = "") {
+final case class ElasticEvent(tags: Set[String], value: AnyRef, timestamp: OffsetDateTime, properties: EventProperties, blob: AnyRef = "") {
   def convertOutput = {
     this match {
       case ElasticEvent(_, v: Map[_, _], _, props, _)
@@ -33,7 +33,7 @@ final case class ElasticEvent(tags: Seq[String], value: AnyRef, timestamp: Offse
 
       case ElasticEvent(_, _, _, props, b) if props.`type` == EventType.JsonBlob => Event(tags, b, timestamp)
 
-      case ElasticEvent(_, v: Map[_, _], _, props, _) => Event(tags, v.asInstanceOf[Map[String, AnyRef]].getOrElse(props.objectType, ""), timestamp, props.objectType)
+      case ElasticEvent(_, v: Map[_, _], _, props, _) => Event(tags, v.asInstanceOf[Map[String, AnyRef]].getOrElse(props.objectType, ""), timestamp, Some(props.objectType))
     }
   }
 }
@@ -46,13 +46,13 @@ object ElasticEvent {
 
   private val tagDelimiter = ':'
 
-  def expandTags: (Seq[String] => Seq[String]) = { (tags: Seq[String]) =>
+  def expandTags: (Set[String] => Set[String]) = { (tags: Set[String]) =>
     tags.flatMap { tag =>
       tag.indexOf(tagDelimiter) match {
         case -1 => tag :: Nil
         case index => tag.substring(0, index) :: tag :: Nil
       }
-    } distinct
+    }
   }
 
   implicit def metricToElasticEvent(metric: Metric): ElasticEvent = {
@@ -61,10 +61,10 @@ object ElasticEvent {
 
 
   implicit def eventToElasticEvent(event: Event): ElasticEvent = {
-    if (event.`type`.isEmpty) {
+    if (event.schema.isEmpty) {
       ElasticEvent(expandTags(event.tags), Map.empty, event.timestamp, EventProperties(EventType.JsonBlob), event.value)
     } else {
-      ElasticEvent(expandTags(event.tags), Map(event.`type` -> event.value), event.timestamp, EventProperties(EventType.Typed, event.`type`))
+      ElasticEvent(expandTags(event.tags), Map(event.schema.get -> event.value), event.timestamp, EventProperties(EventType.Typed, event.schema.get))
     }
 
   }

@@ -4,11 +4,10 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
-import io.vamp.pulse.api.AggregatorType.AggregatorType
-import io.vamp.pulse.api.{Aggregator, AggregatorType, EventQuery}
 import io.vamp.pulse.eventstream.message.ElasticEvent
 import io.vamp.pulse.eventstream.notification.{EmptyEventError, MappingErrorNotification}
 import io.vamp.pulse.mapper.CustomObjectSource
+import io.vamp.pulse.model.{Aggregator, EventQuery, TimeRange}
 import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
@@ -38,7 +37,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   implicit val formats = ElasticEvent.formats
 
   def insert(event: ElasticEvent) = {
-    if(event.tags.isEmpty) error(EmptyEventError)
+    if (event.tags.isEmpty) error(EmptyEventError)
 
     client.execute {
       insertQuery(event)
@@ -72,25 +71,28 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
       case None => getPlainEvents(eventQuery) map {
         resp => ResultList(List(resp.getHits.hits().map((hit) => parse(hit.sourceAsString()).extract[ElasticEvent]): _*))
       }
-      case Some(x: Aggregator) if x.`type` == AggregatorType.count => getPlainEvents(eventQuery) map {
+      case Some(x: Aggregator) if x.`type` == Aggregator.Count => getPlainEvents(eventQuery) map {
         resp => AggregationResult(Map("value" -> resp.getHits.getTotalHits))
       }
-      case Some(x: Aggregator) if x.`type` != AggregatorType.count => getAggregateEvents(eventQuery)
+      case Some(x: Aggregator) if x.`type` != Aggregator.Count => getAggregateEvents(eventQuery)
     }
   }
 
   private def constructQuery(eventQuery: EventQuery) = {
-    val tagNum = eventQuery.tags.length
+    val tagNum = eventQuery.tags.size
 
-    val queries: mutable.Queue[QueryDefinition] = mutable.Queue(
-      rangeQuery("timestamp") from eventQuery.time.from.toEpochSecond to eventQuery.time.to.toEpochSecond
-    )
+    val queries: mutable.Queue[QueryDefinition] = mutable.Queue(constructTimeQuery(eventQuery.time))
 
-    if (tagNum > 0) queries += termsQuery("tags", eventQuery.tags: _*) minimumShouldMatch tagNum
-
-    if (!eventQuery.`type`.isEmpty) queries += termQuery("properties.objectType", eventQuery.`type`)
+    if (tagNum > 0) queries += termsQuery("tags", eventQuery.tags.toSeq: _*) minimumShouldMatch tagNum
 
     queries
+  }
+
+  private def constructTimeQuery(timeRange: Option[TimeRange]) = timeRange match {
+    case Some(TimeRange(Some(from), Some(to))) => rangeQuery("timestamp") from from.toEpochSecond to to.toEpochSecond
+    case Some(TimeRange(None, Some(to))) => rangeQuery("timestamp") to to.toEpochSecond
+    case Some(TimeRange(Some(from), None)) => rangeQuery("timestamp") from from.toEpochSecond
+    case _ => rangeQuery("timestamp")
   }
 
   private def getPlainEvents(eventQuery: EventQuery) = {
@@ -106,11 +108,11 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   }
 
 
-  private def getAggregateEvents(eventQuery: EventQuery) = {
-    val aggregator = eventQuery.aggregator.getOrElse(Aggregator(AggregatorType.average))
-    val aggFieldParts = List("value", eventQuery.`type`, aggregator.field)
+  private def getAggregateEvents(query: EventQuery) = {
+    val aggregator = query.aggregator.getOrElse(Aggregator(Aggregator.Average))
+    val aggFieldParts = List("value", aggregator.field.getOrElse(""))
     val aggField = aggFieldParts.filter(p => !p.isEmpty).mkString(".")
-    val qFilter = queryFilter(must(constructQuery(eventQuery)))
+    val qFilter = queryFilter(must(constructQuery(query)))
 
 
     client.execute {
@@ -119,10 +121,10 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
           qFilter
         } aggs {
           aggregator.`type` match {
-            case AggregatorType.average => aggregation avg "val_agg" field aggField
-            case AggregatorType.min => aggregation min "val_agg" field aggField
-            case AggregatorType.max => aggregation max "val_agg" field aggField
-            case t: AggregatorType => throw new Exception(s"No such aggregation implemented $t")
+            case Aggregator.Average => aggregation avg "val_agg" field aggField
+            case Aggregator.Min => aggregation min "val_agg" field aggField
+            case Aggregator.Max => aggregation max "val_agg" field aggField
+            case t: Aggregator.Value => throw new Exception(s"No such aggregation implemented $t")
           }
         }
       }

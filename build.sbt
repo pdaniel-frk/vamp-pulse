@@ -80,7 +80,7 @@ lazy val root = project.in(file(".")).settings(
     (run in server in Compile).evaluated
   }
 ).aggregate(
-    server, api, client
+    server, model, client
   ).disablePlugins(sbtassembly.AssemblyPlugin)
 
 
@@ -110,11 +110,11 @@ lazy val server = project.settings(
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonV,
     "org.slf4j" % "slf4j-simple" % "1.7.10"
   )
-).dependsOn(api).disablePlugins(sbtassembly.AssemblyPlugin)
+).dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
 
-lazy val api = project.disablePlugins(sbtassembly.AssemblyPlugin)
+lazy val model = project.disablePlugins(sbtassembly.AssemblyPlugin)
 
-lazy val client = project.dependsOn(api).disablePlugins(sbtassembly.AssemblyPlugin)
+lazy val client = project.dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
 
 // Java version and encoding requirements
 scalacOptions += "-target:jvm-1.8"
