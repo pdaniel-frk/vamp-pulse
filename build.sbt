@@ -2,9 +2,9 @@ organization := "io.vamp"
 
 name := """pulse"""
 
-version := "0.7.5"
+version := "0.7.6"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 publishMavenStyle := true
 
@@ -30,8 +30,8 @@ pomExtra := (<url>http://vamp.io</url>
 val json4sV = "3.2.11"
 val sprayV = "1.3.2"
 val jerseyV = "2.15"
-val vampCommonV = "0.7.5"
-val vampPulseApiV = "0.7.5"
+val vampCommonV = "0.7.6"
+val vampPulseApiV = "0.7.6"
 val jacksonV = "2.5.0"
 val elasticV = "1.5.4"
 
@@ -79,3 +79,10 @@ bintray.Keys.repository in bintray.Keys.bintray := "vamp"
 licenses  += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 bintray.Keys.bintrayOrganization in bintray.Keys.bintray := Some("magnetic-io")
+
+assemblyMergeStrategy in assembly := {
+  case PathList("org", "joda", xs @ _*) => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
