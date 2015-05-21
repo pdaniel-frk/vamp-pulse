@@ -1,4 +1,4 @@
-package io.vamp.pulse.old.storage.engine
+package io.vamp.pulse.elastic
 
 import java.nio.file.Files
 
@@ -9,11 +9,8 @@ import org.elasticsearch.node.NodeBuilder._
 import org.slf4j.LoggerFactory
 
 
-/**
- * Created by lazycoder on 16/02/15.
- */
-class ESLocalServer(clusterName: String, httpEnabled: Boolean = false, local: Boolean = false) {
-  private val logger = Logger(LoggerFactory.getLogger(classOf[ESLocalServer]))
+class ElasticSearchLocalServer(clusterName: String, httpEnabled: Boolean = false, local: Boolean = false) {
+  private val logger = Logger(LoggerFactory.getLogger(classOf[ElasticSearchLocalServer]))
   private val dataDir = Files.createTempDirectory("es_data_").toFile
   private val settings = ImmutableSettings.settingsBuilder()
                         .put("path.data", dataDir.toString)
@@ -30,10 +27,10 @@ class ESLocalServer(clusterName: String, httpEnabled: Boolean = false, local: Bo
     node.start
   }
 
-  def stop = {
+  def stop() = {
     logger.info(s"Shutting down local ElasticSearch server, clusterName: $clusterName")
 
-    node.close
+    node.close()
 
     try {
       FileUtils.forceDelete(dataDir)

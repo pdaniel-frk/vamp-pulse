@@ -1,4 +1,4 @@
-package io.vamp.pulse.old.eventstream.producer
+package io.vamp.pulse.eventstream
 
 import akka.actor.Props
 import akka.stream.actor.ActorPublisher

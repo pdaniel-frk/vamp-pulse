@@ -1,11 +1,11 @@
-package io.vamp.pulse
+package io.vamp.pulse.server
 
 import akka.util.Timeout
 import io.vamp.common.akka.ExecutionContextProvider
 import io.vamp.common.vitals.JmxVitalsProvider
+import io.vamp.pulse.elastic.{ElasticSearchAggregationResult, ElasticSearchResultList, ElasticSearchEventDAO}
 import io.vamp.pulse.model.{Event, EventQuery}
-import io.vamp.pulse.old.storage.dao.{AggregationResult, ElasticEventDAO, ResultList}
-import io.vamp.pulse.old.util.Serializers
+import io.vamp.pulse.util.PulseSerializer
 import org.elasticsearch.action.index.IndexResponse
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
@@ -20,11 +20,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport with JmxVitalsProvider with ExecutionContextProvider {
+class Routes(val eventDao: ElasticSearchEventDAO)(implicit val executionContext: ExecutionContext) extends Json4sSupport with JmxVitalsProvider with ExecutionContextProvider {
 
   protected def jsonResponse = respondWithMediaType(`application/json`) | respondWithHeaders(`Cache-Control`(`no-store`), RawHeader("Pragma", "no-cache"))
 
-  override implicit def json4sFormats: Formats = Serializers.formats
+  override implicit def json4sFormats: Formats = PulseSerializer.default
 
   implicit val timeout = Timeout(5 seconds)
 
@@ -34,7 +34,9 @@ class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: Execu
         pathEndOrSingleSlash {
           get {
             onSuccess(vitals) { info =>
-              complete(OK, info)
+              respondWithStatus(OK) {
+                complete(info)
+              }
             }
           }
         }
@@ -57,8 +59,14 @@ class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: Execu
               entity(as[EventQuery]) {
                 request =>
                   onSuccess(eventDao.getEvents(request)) {
-                    case ResultList(list) => complete(OK, list)
-                    case AggregationResult(map) => complete(OK, map)
+                    case ElasticSearchResultList(list) =>
+                      respondWithStatus(OK) {
+                        complete(list)
+                      }
+                    case ElasticSearchAggregationResult(map) =>
+                      respondWithStatus(OK) {
+                        complete(map)
+                      }
                     case _ => complete(BadRequest)
                   }
               }
@@ -70,7 +78,10 @@ class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: Execu
             post {
               entity(as[Event]) {
                 request => onSuccess(eventDao.insert(request)) {
-                  case resp: IndexResponse => complete(Created, request)
+                  case resp: IndexResponse =>
+                    respondWithStatus(Created) {
+                      complete(request)
+                    }
                 }
               }
             }

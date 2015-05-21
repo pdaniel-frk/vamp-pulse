@@ -1,6 +1,7 @@
-package io.vamp.pulse.old.eventstream.decoder
+package io.vamp.pulse.eventstream.decoder
 
 import io.vamp.pulse.model.Event
+import io.vamp.pulse.eventstream.EventDecoder
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source

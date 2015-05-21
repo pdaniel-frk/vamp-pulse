@@ -12,4 +12,7 @@ object Aggregator extends Enumeration {
 
 case class Aggregator(`type`: AggregatorType, field: Option[String] = None)
 
-case class AggregationResult(value: Double)
+
+trait AggregationResult
+
+case class NumericAggregationResult(value: Double) extends AggregationResult

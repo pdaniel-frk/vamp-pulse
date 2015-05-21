@@ -1,4 +1,4 @@
-package io.vamp.pulse.old.main
+package io.vamp.pulse
 
 import akka.actor.ActorSystem
 import akka.io.IO
@@ -9,14 +9,11 @@ import akka.util.Timeout
 import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
+import io.vamp.pulse.elastic.{ElasticSearchEventDAO, ElasticSearchLocalServer}
+import io.vamp.pulse.eventstream._
 import io.vamp.pulse.model.Event
-import io.vamp.pulse.old.eventstream.driver.{Driver, KafkaDriver, SseDriver}
-import io.vamp.pulse.old.eventstream.producer.{KafkaMetricsPublisher, SSEMetricsPublisher}
-import io.vamp.pulse.old.storage.client.ESApi
-import io.vamp.pulse.old.storage.dao.ElasticEventDAO
-import io.vamp.pulse.old.storage.engine.ESLocalServer
-import org.json4s._
-import org.json4s.native.Serialization
+import io.vamp.pulse.server.HttpActor
+import org.elasticsearch.common.settings.ImmutableSettings
 import org.slf4j.LoggerFactory
 import spray.can.Http
 
@@ -24,19 +21,18 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Try
 
-object Startup extends App {
+object PulseBootstrap extends App {
   private implicit val system = ActorSystem("pulse-system")
   private implicit val mat = ActorFlowMaterializer()
   private implicit val executionContext = system.dispatcher
 
   private val config = ConfigFactory.load()
   private val logger = Logger(LoggerFactory.getLogger("Main"))
-  private implicit val formats = Serialization.formats(NoTypeHints)
 
   private val streamDriverType = Try(config.getString("stream.driver")).getOrElse("sse")
 
   private val esConf = config.getConfig("storage.es")
-  private var esServer: Option[ESLocalServer] = Option.empty[ESLocalServer]
+  private var esServer: Option[ElasticSearchLocalServer] = Option.empty[ElasticSearchLocalServer]
   private val esClusterName = esConf.getString("cluster.name")
 
   private var startTriggered = false
@@ -54,17 +50,17 @@ object Startup extends App {
 
   private def startup(): Unit = {
 
-    implicit var esClient: ElasticClient = esConf.getBoolean("embedded.enabled") match {
+    implicit val esClient: ElasticClient = esConf.getBoolean("embedded.enabled") match {
       case true =>
         logger.info("Starting embedded ES cluster")
-        esServer = Option(new ESLocalServer(esClusterName, esConf.getBoolean("embedded.http"), esConf.getBoolean("embedded.local")))
+        esServer = Option(new ElasticSearchLocalServer(esClusterName, esConf.getBoolean("embedded.http"), esConf.getBoolean("embedded.local")))
         ElasticClient.fromClient(esServer.get.start.client())
 
       case false => logger.debug("No embedded ES cluster")
-        ESApi.getClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
+        getPulseClient(esClusterName, esConf.getString("host"), esConf.getInt("port"))
     }
 
-    val eventDao = new ElasticEventDAO
+    val eventDao = new ElasticSearchEventDAO
 
     eventDao.createIndex
 
@@ -77,6 +73,13 @@ object Startup extends App {
     driver.start(materializedMap.get(metricManagerSource), system)
 
     httpListen(eventDao)
+  }
+
+  private def getPulseClient(clusterName: String, host: String, port: Int) = {
+    val settings = ImmutableSettings.settingsBuilder()
+      .put("cluster.name", clusterName).build()
+
+    ElasticClient.remote(settings, host, port)
   }
 
   start()
@@ -93,13 +96,13 @@ object Startup extends App {
   private def stopPulse(): Unit = {
 
     if (esServer.isDefined) {
-      esServer.get.stop
+      esServer.get.stop()
     }
 
     system.shutdown()
   }
 
-  private def httpListen(eventDao: ElasticEventDAO) = {
+  private def httpListen(eventDao: ElasticSearchEventDAO) = {
 
     val server = system.actorOf(HttpActor.props(eventDao), "http-actor")
     val interface = config.getString("http.interface")

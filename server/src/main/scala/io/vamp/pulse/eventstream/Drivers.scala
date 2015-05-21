@@ -1,10 +1,9 @@
-package io.vamp.pulse.old.eventstream.driver
+package io.vamp.pulse.eventstream
 
 import akka.actor.{ActorRef, ActorSystem}
 import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
 import com.typesafe.config.ConfigFactory
 import io.vamp.pulse.model.Event
-import io.vamp.pulse.old.eventstream.decoder.EventDecoder
 import kafka.serializer.DefaultDecoder
 
 trait Driver {

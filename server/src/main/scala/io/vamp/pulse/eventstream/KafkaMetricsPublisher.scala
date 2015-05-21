@@ -1,4 +1,4 @@
-package io.vamp.pulse.old.eventstream.producer
+package io.vamp.pulse.eventstream
 
 import akka.actor.{ActorRef, Props}
 import akka.stream.actor.ActorPublisher
@@ -23,7 +23,7 @@ class KafkaMetricsPublisher extends ActorPublisher[Event] {
         onNext(event)
         sender() ! StreamFSM.Processed
       } else {
-        buf :+=(sender(), event)
+        buf :+= sender() -> event
         deliverBuf()
       }
     case Request(_) => deliverBuf()

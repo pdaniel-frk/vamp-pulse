@@ -1,21 +1,23 @@
-package io.vamp.pulse.old.eventstream.driver
+package io.vamp.pulse.eventstream
 
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{AbstractLoggingActor, ActorRef, Props}
-import io.vamp.pulse.old.configuration.{PulseActorLoggingNotificationProvider, PulseNotificationActor, TimeoutConfigurationProvider}
-import io.vamp.pulse.old.eventstream.decoder.EventDecoder
-import io.vamp.pulse.notification.{ConnectionSuccessful, NotStreamError, UnableToConnectError}
+import io.vamp.pulse.configuration.TimeoutConfigurationProvider
+import io.vamp.pulse.notification._
 import org.glassfish.jersey.client.{ClientConfig, ClientProperties, JerseyClientBuilder}
 import org.glassfish.jersey.media.sse.{EventListener, EventSource, InboundEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.blocking
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 case object CheckConnection
+
 case object CloseConnection
+
 case object OpenConnection
 
 class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider with TimeoutConfigurationProvider {
@@ -25,10 +27,8 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
   private val decoder = new EventDecoder()
 
 
-
-
   val target = {
-    val conf: ClientConfig  = new ClientConfig()
+    val conf: ClientConfig = new ClientConfig()
     conf.property(ClientProperties.CONNECT_TIMEOUT, config.getInt("http.connect"))
     conf.property(ClientProperties.READ_TIMEOUT, config.getInt("http.connect"))
 
@@ -38,9 +38,7 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
 
   val listener = new EventListener {
     override def onEvent(inboundEvent: InboundEvent): Unit = inboundEvent.getName match {
-      case "metric" => {
-        producerRef ! decoder.fromString(inboundEvent.readData(classOf[String]))
-      }
+      case "metric" => producerRef ! decoder.fromString(inboundEvent.readData(classOf[String]))
       case _ => println(s"Received event ${inboundEvent.getName}, ignoring")
     }
   }
@@ -61,7 +59,7 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
     case CloseConnection if isOpen =>
       log.debug("closing sse connection")
       isOpen = false
-      if(eventSource.isDefined && eventSource.get.isOpen) {
+      if (eventSource.isDefined && eventSource.get.isOpen) {
         eventSource.get.close()
         eventSource = Option.empty
       }
@@ -82,13 +80,13 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
 
         case Failure(_) =>
           if (eventSource.isDefined && eventSource.get.isOpen) {
-            eventSource.get.close
+            eventSource.get.close()
             eventSource = Option.empty
           }
           exception(UnableToConnectError(streamUrl))
 
         case Success(resp) if resp.getHeaderString("X-Vamp-Stream") != null =>
-          if(eventSource.isEmpty && isOpen){
+          if (eventSource.isEmpty && isOpen) {
             eventSource = buildEventSource
             eventSource.get.open()
             log.info(message(ConnectionSuccessful(streamUrl)))
@@ -98,7 +96,7 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
       }
 
 
-      if(isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)
+      if (isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)
 
 
   }

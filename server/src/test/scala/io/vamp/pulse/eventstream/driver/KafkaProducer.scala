@@ -1,4 +1,4 @@
-package io.vamp.pulse.old.eventstream.driver
+package io.vamp.pulse.eventstream.driver
 
 import java.util.{Properties, UUID}
 

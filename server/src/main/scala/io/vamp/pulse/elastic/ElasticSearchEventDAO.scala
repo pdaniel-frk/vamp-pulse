@@ -1,13 +1,15 @@
-package io.vamp.pulse.old.storage.dao
+package io.vamp.pulse.elastic
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.mappings.FieldType._
+import com.sksamuel.elastic4s.source.DocumentSource
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
-import io.vamp.pulse.model.{Event, Aggregator, EventQuery, TimeRange}
+import io.vamp.pulse.model.{Aggregator, Event, EventQuery, TimeRange}
 import io.vamp.pulse.notification.{EmptyEventError, MappingErrorNotification}
-import io.vamp.pulse.old.mapper.CustomObjectSource
-import io.vamp.pulse.old.util.Serializers
+import io.vamp.pulse.util.PulseSerializer
 import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
@@ -19,22 +21,21 @@ import org.json4s.native.JsonMethods._
 import scala.collection._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
+import scala.language.{implicitConversions, postfixOps}
 
-final case class ResultList(list: List[Event])
+final case class ElasticSearchResultList(list: List[Event])
 
-final case class AggregationResult(map: Map[String, Double])
+final case class ElasticSearchAggregationResult(map: Map[String, Double])
 
-class ElasticEventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext)
+class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext)
   extends LoggingNotificationProvider with DefaultPackageMessageResolverProvider {
 
   import CustomObjectSource._
 
-
   private val eventEntity = "event"
   private val eventIndex = "events"
 
-  implicit val formats = Serializers.formats
+  implicit val formats = PulseSerializer.default
 
   def insert(event: Event) = {
     if (event.tags.isEmpty) error(EmptyEventError)
@@ -69,10 +70,10 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
   def getEvents(eventQuery: EventQuery): Future[Any] = {
     eventQuery.aggregator match {
       case None => getPlainEvents(eventQuery) map {
-        resp => ResultList(List(resp.getHits.hits().map((hit) => parse(hit.sourceAsString()).extract[Event]): _*))
+        resp => ElasticSearchResultList(List(resp.getHits.hits().map((hit) => parse(hit.sourceAsString()).extract[Event]): _*))
       }
       case Some(x: Aggregator) if x.`type` == Aggregator.Count => getPlainEvents(eventQuery) map {
-        resp => AggregationResult(Map("value" -> resp.getHits.getTotalHits))
+        resp => ElasticSearchAggregationResult(Map("value" -> resp.getHits.getTotalHits))
       }
       case Some(x: Aggregator) if x.`type` != Aggregator.Count => getAggregateEvents(eventQuery)
     }
@@ -137,7 +138,7 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
         if (value.isNaN || value.isInfinite) value = 0D
 
-        AggregationResult(Map("value" -> value))
+        ElasticSearchAggregationResult(Map("value" -> value))
     }
   }
 
@@ -159,4 +160,18 @@ class ElasticEventDAO(implicit client: ElasticClient, implicit val executionCont
 
     createIndex await
   }
+}
+
+class CustomObjectSource(any: Any) extends DocumentSource {
+  override def json: String = CustomObjectSource.mapper.writeValueAsString(any)
+}
+
+object CustomObjectSource {
+  val mapper = new ObjectMapper
+  mapper.findAndRegisterModules()
+  mapper.registerModule(DefaultScalaModule)
+
+  def apply(any: Any) = new CustomObjectSource(any)
+
+  implicit def anyToObjectSource(any: Any): CustomObjectSource = apply(any)
 }

@@ -5,9 +5,9 @@ organization in ThisBuild := "io.vamp"
 
 name := """pulse"""
 
-version in ThisBuild := "0.7.5"
+version in ThisBuild := "0.7.6"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 scalaVersion in ThisBuild := scalaVersion.value
 
@@ -54,7 +54,7 @@ resolvers ++= Seq(
 
 // Shared dependencies
 
-val vampCommonV = "0.7.5"
+val vampCommonV = "0.7.6"
 val json4sV = "3.2.11"
 
 // Note ThisBuild, this is what makes these dependencies shared
@@ -116,8 +116,8 @@ lazy val model = project.disablePlugins(sbtassembly.AssemblyPlugin)
 
 lazy val client = project.dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
 
-// Java version and encoding requirements
-scalacOptions += "-target:jvm-1.8"
+scalacOptions in ThisBuild ++= Seq(Opts.compile.deprecation, Opts.compile.unchecked) ++
+  Seq("-target:jvm-1.8", "-Ywarn-unused-import", "-Ywarn-unused", "-Xlint", "-feature")
 
 javacOptions ++= Seq("-encoding", "UTF-8")
 
@@ -129,4 +129,5 @@ bintray.Keys.repository in bintray.Keys.bintray := "vamp"
 licenses  += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 bintray.Keys.bintrayOrganization in bintray.Keys.bintray := Some("magnetic-io")
+
 
