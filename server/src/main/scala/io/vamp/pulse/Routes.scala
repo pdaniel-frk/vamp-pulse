@@ -4,10 +4,8 @@ import akka.util.Timeout
 import io.vamp.common.akka.ExecutionContextProvider
 import io.vamp.common.vitals.JmxVitalsProvider
 import io.vamp.pulse.model.{Event, EventQuery}
-import io.vamp.pulse.eventstream.message.ElasticEvent._
-import io.vamp.pulse.eventstream.message.Metric
-import io.vamp.pulse.storage.dao.{AggregationResult, ElasticEventDAO, ResultList}
-import io.vamp.pulse.util.Serializers
+import io.vamp.pulse.old.storage.dao.{AggregationResult, ElasticEventDAO, ResultList}
+import io.vamp.pulse.old.util.Serializers
 import org.elasticsearch.action.index.IndexResponse
 import org.json4s._
 import spray.http.CacheDirectives.`no-store`
@@ -59,7 +57,7 @@ class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: Execu
               entity(as[EventQuery]) {
                 request =>
                   onSuccess(eventDao.getEvents(request)) {
-                    case ResultList(list) => complete(OK, list.map(_.convertOutput))
+                    case ResultList(list) => complete(OK, list)
                     case AggregationResult(map) => complete(OK, map)
                     case _ => complete(BadRequest)
                   }
@@ -70,23 +68,14 @@ class Routes(val eventDao: ElasticEventDAO)(implicit val executionContext: Execu
         path("events") {
           pathEndOrSingleSlash {
             post {
-              entity(as[Metric]) {
+              entity(as[Event]) {
                 request => onSuccess(eventDao.insert(request)) {
                   case resp: IndexResponse => complete(Created, request)
                 }
               }
-            } ~
-              post {
-                entity(as[Event]) {
-                  request => onSuccess(eventDao.insert(request)) {
-                    case resp: IndexResponse => complete(Created, request)
-                  }
-                }
-              }
+            }
           }
-
         }
     }
   }
-
 }

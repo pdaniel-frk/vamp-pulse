@@ -1,20 +1,16 @@
 package io.vamp.pulse.api
 
-import io.vamp.pulse.eventstream.decoder.ElasticEventDecoder
-import io.vamp.pulse.eventstream.message.{ElasticEvent, Metric}
 import io.vamp.pulse.model
-import io.vamp.pulse.util.Serializers
+import io.vamp.pulse.old.eventstream.decoder.EventDecoder
+import io.vamp.pulse.old.util.Serializers
 import org.json4s.native.JsonMethods._
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source
 
-/**
- * Created by lazycoder on 25/02/15.
- */
 class EntitiesSpec extends FlatSpec with Matchers {
   implicit val formats = Serializers.formats
-  val decoder = new ElasticEventDecoder()
+  val decoder = new EventDecoder()
 
   "MetricQuery" should "be able to be decoded from json" in {
     val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
@@ -23,31 +19,31 @@ class EntitiesSpec extends FlatSpec with Matchers {
     eventQuery shouldBe an[model.EventQuery]
   }
 
-  "ElasticEvent" should "be able to be decoded from metric json" in {
+  "Event" should "be able to be decoded from metric json" in {
     val str = Source.fromURL(getClass.getResource("/metric.json")).mkString
     val elasticEvent = decoder.fromString(str)
 
-    elasticEvent shouldBe an[ElasticEvent]
+    elasticEvent shouldBe an[Event]
   }
 
-  "ElasticEvent" should "be able to be decoded from event json" in {
+  "Event" should "be able to be decoded from event json" in {
     val str = Source.fromURL(getClass.getResource("/event.json")).mkString
     val elasticEvent = decoder.fromString(str)
 
-    elasticEvent shouldBe an[ElasticEvent]
+    elasticEvent shouldBe an[Event]
   }
 
-  "Metric" should "be able to be produced by ElasticEvent decoded from Metric json" in {
-    val str = Source.fromURL(getClass.getResource("/metric.json")).mkString
-    val elasticEvent = decoder.fromString(str)
+  //  "Metric" should "be able to be produced by Event decoded from Metric json" in {
+  //    val str = Source.fromURL(getClass.getResource("/metric.json")).mkString
+  //    val elasticEvent = decoder.fromString(str)
+  //
+  //    elasticEvent.convertOutput shouldBe a[Metric]
+  //  }
 
-    elasticEvent.convertOutput shouldBe a[Metric]
-  }
-
-  "Event" should "be able to be produced by ElasticEvent decoded from Event json" in {
-    val str = Source.fromURL(getClass.getResource("/event.json")).mkString
-    val elasticEvent = decoder.fromString(str)
-
-    elasticEvent.convertOutput shouldBe an[Event]
-  }
+  //  "Event" should "be able to be produced by Event decoded from Event json" in {
+  //    val str = Source.fromURL(getClass.getResource("/event.json")).mkString
+  //    val event = decoder.fromString(str)
+  //
+  //    event.convertOutput shouldBe an[Event]
+  //  }
 }

@@ -97,7 +97,6 @@ lazy val server = project.settings(
     "com.typesafe" % "config" % "1.2.1",
     "com.sclasen" %% "akka-kafka" % "0.1.0",
     "commons-io" % "commons-io" % "2.4",
-    "org.scalatest" %% "scalatest" % "3.0.0-SNAP4" % "test",
     "io.spray" %% "spray-can" % sprayV,
     "io.spray" %% "spray-http" % sprayV,
     "io.spray" %% "spray-util" % sprayV,
@@ -108,7 +107,8 @@ lazy val server = project.settings(
     "com.sksamuel.elastic4s" %% "elastic4s" % "1.5.4",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonV,
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonV,
-    "org.slf4j" % "slf4j-simple" % "1.7.10"
+    "org.slf4j" % "slf4j-simple" % "1.7.10",
+    "org.scalatest" %% "scalatest" % "2.2.5" % "test"
   )
 ).dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
 
@@ -129,8 +129,4 @@ bintray.Keys.repository in bintray.Keys.bintray := "vamp"
 licenses  += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 bintray.Keys.bintrayOrganization in bintray.Keys.bintray := Some("magnetic-io")
-
-
-
-
 
