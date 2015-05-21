@@ -12,10 +12,11 @@ import org.elasticsearch.node.Node
 import org.json4s.native.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.io.Source
+import scala.language.postfixOps
 
 
 class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll with FutureSupport {
@@ -47,14 +48,12 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll 
 
   "MetricDAO" should "be able to insert about 25000 metrics per second in batches of 1000" in {
     val str = decoder.fromString(Source.fromURL(getClass.getResource("/metric.json")).mkString)
-    val eventList = for(x <- 1 to 1000) yield str
-    val futures = for(x <- 1 to 100) yield dao.batchInsertFuture(eventList)
+    val eventList = for (x <- 1 to 1000) yield str
+    val futures = for (x <- 1 to 100) yield dao.batchInsertFuture(eventList)
 
-    val res = Await.result(sequentialExecution(futures), 4000 millis)
+    val res = Await.result(Future.sequence(futures), 4000 millis)
 
-    res shouldBe a[List[_]]
-
-
+    res shouldBe a[Vector[_]]
   }
 
 
@@ -76,7 +75,6 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll 
     resp shouldBe a[AggregationResult]
 
   }
-
 
 
 }
