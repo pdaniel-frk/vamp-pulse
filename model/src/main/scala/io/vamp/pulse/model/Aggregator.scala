@@ -7,7 +7,7 @@ import scala.language.implicitConversions
 object Aggregator extends Enumeration {
   type AggregatorType = Aggregator.Value
 
-  val Min, Max, Average, Count = Value
+  val min, max, average, count = Value
 }
 
 case class Aggregator(`type`: AggregatorType, field: Option[String] = None)

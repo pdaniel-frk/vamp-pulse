@@ -1,6 +1,6 @@
 package io.vamp.pulse.eventstream
 
-import io.vamp.pulse.http.PulseSerializer
+import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model.Event
 import io.vamp.pulse.notification.{PulseNotificationProvider, UnableToDecodeError}
 import kafka.serializer.{Decoder, StringDecoder}
@@ -10,7 +10,7 @@ import org.json4s.native.JsonMethods._
 
 
 class EventDecoder(props: VerifiableProperties = null) extends Decoder[Event] with PulseNotificationProvider {
-  implicit val formats = PulseSerializer.default
+  implicit val formats = PulseSerializationFormat.serializer
   val stringDecoder = new StringDecoder(props)
 
   override def fromBytes(bytes: Array[Byte]): Event = fromString(stringDecoder.fromBytes(bytes))

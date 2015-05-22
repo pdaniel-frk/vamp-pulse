@@ -1,6 +1,6 @@
 package io.vamp.pulse.api
 
-import io.vamp.pulse.http.PulseSerializer
+import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model
 import io.vamp.pulse.eventstream.EventDecoder
 import org.json4s.native.JsonMethods._
@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.io.Source
 
 class EntitiesSpec extends FlatSpec with Matchers {
-  implicit val formats = PulseSerializer.default
+  implicit val formats = PulseSerializationFormat.serializer
   val decoder = new EventDecoder()
 
   "MetricQuery" should "be able to be decoded from json" in {

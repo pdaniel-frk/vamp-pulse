@@ -4,7 +4,7 @@ import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.FutureSupport
 import io.vamp.pulse.elastic.{ElasticSearchAggregationResult, ElasticSearchEventDAO, ElasticSearchLocalServer, ElasticSearchResultList}
-import io.vamp.pulse.http.PulseSerializer
+import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model.EventQuery
 import io.vamp.pulse.eventstream.EventDecoder
 import org.elasticsearch.node.Node
@@ -19,7 +19,7 @@ import scala.language.postfixOps
 
 class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll with FutureSupport {
 
-  implicit val formats = PulseSerializer.default
+  implicit val formats = PulseSerializationFormat.serializer
 
   val config = ConfigFactory.load()
 

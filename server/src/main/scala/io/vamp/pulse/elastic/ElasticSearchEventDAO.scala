@@ -7,7 +7,7 @@ import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.source.DocumentSource
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
-import io.vamp.pulse.http.PulseSerializer
+import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model.{Aggregator, Event, EventQuery, TimeRange}
 import io.vamp.pulse.notification.{EmptyEventError, MappingErrorNotification}
 import org.elasticsearch.index.mapper.MapperParsingException
@@ -35,7 +35,7 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
   private val eventEntity = "event"
   private val eventIndex = "events"
 
-  implicit val formats = PulseSerializer.default
+  implicit val formats = PulseSerializationFormat.serializer
 
   def insert(event: Event) = {
     if (event.tags.isEmpty) error(EmptyEventError)
@@ -72,10 +72,10 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
       case None => getPlainEvents(eventQuery) map {
         resp => ElasticSearchResultList(List(resp.getHits.hits().map((hit) => parse(hit.sourceAsString()).extract[Event]): _*))
       }
-      case Some(x: Aggregator) if x.`type` == Aggregator.Count => getPlainEvents(eventQuery) map {
+      case Some(x: Aggregator) if x.`type` == Aggregator.count => getPlainEvents(eventQuery) map {
         resp => ElasticSearchAggregationResult(Map("value" -> resp.getHits.getTotalHits))
       }
-      case Some(x: Aggregator) if x.`type` != Aggregator.Count => getAggregateEvents(eventQuery)
+      case Some(x: Aggregator) if x.`type` != Aggregator.count => getAggregateEvents(eventQuery)
     }
   }
 
@@ -110,7 +110,7 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
 
 
   private def getAggregateEvents(query: EventQuery) = {
-    val aggregator = query.aggregator.getOrElse(Aggregator(Aggregator.Average))
+    val aggregator = query.aggregator.getOrElse(Aggregator(Aggregator.average))
     val aggFieldParts = List("value", aggregator.field.getOrElse(""))
     val aggField = aggFieldParts.filter(p => !p.isEmpty).mkString(".")
     val qFilter = queryFilter(must(constructQuery(query)))
@@ -122,9 +122,9 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
           qFilter
         } aggs {
           aggregator.`type` match {
-            case Aggregator.Average => aggregation avg "val_agg" field aggField
-            case Aggregator.Min => aggregation min "val_agg" field aggField
-            case Aggregator.Max => aggregation max "val_agg" field aggField
+            case Aggregator.`average` => aggregation avg "val_agg" field aggField
+            case Aggregator.`min` => aggregation min "val_agg" field aggField
+            case Aggregator.`max` => aggregation max "val_agg" field aggField
             case t: Aggregator.Value => throw new Exception(s"No such aggregation implemented $t")
           }
         }
