@@ -83,31 +83,39 @@ lazy val root = project.in(file(".")).settings(
     server, model, client
   ).disablePlugins(sbtassembly.AssemblyPlugin)
 
-
-val sprayV = "1.3.2"
-val jerseyV = "2.15"
-val jacksonV = "2.5.0"
+val akkaVersion = "2.3.11"
+val akkaStreamsVersion = "1.0-M3"
+val sprayVersion = "1.3.2"
+val jerseyVersion = "2.15"
+val jacksonVersion = "2.5.0"
+val scalaLoggingVersion = "3.1.0"
+val slf4jVersion = "1.7.10"
+val logbackVersion = "1.1.2"
 
 lazy val server = project.settings(
   libraryDependencies ++=Seq(
-    "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M3",
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream-experimental" % akkaStreamsVersion,
     "org.scala-lang.modules" %% "scala-async" % "0.9.2",
-    "org.glassfish.jersey.core" % "jersey-client" % jerseyV,
-    "org.glassfish.jersey.media" % "jersey-media-sse" % jerseyV,
+    "org.glassfish.jersey.core" % "jersey-client" % jerseyVersion,
+    "org.glassfish.jersey.media" % "jersey-media-sse" % jerseyVersion,
     "com.typesafe" % "config" % "1.2.1",
     "com.sclasen" %% "akka-kafka" % "0.1.0",
     "commons-io" % "commons-io" % "2.4",
-    "io.spray" %% "spray-can" % sprayV,
-    "io.spray" %% "spray-http" % sprayV,
-    "io.spray" %% "spray-util" % sprayV,
-    "io.spray" %% "spray-io" % sprayV,
-    "io.spray" %% "spray-routing" % sprayV,
-    "io.spray" %% "spray-can" % sprayV,
+    "io.spray" %% "spray-can" % sprayVersion,
+    "io.spray" %% "spray-http" % sprayVersion,
+    "io.spray" %% "spray-util" % sprayVersion,
+    "io.spray" %% "spray-io" % sprayVersion,
+    "io.spray" %% "spray-routing" % sprayVersion,
+    "io.spray" %% "spray-can" % sprayVersion,
     "com.github.nscala-time" %% "nscala-time" % "1.8.0",
     "com.sksamuel.elastic4s" %% "elastic4s" % "1.5.4",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonV,
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonV,
-    "org.slf4j" % "slf4j-simple" % "1.7.10",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonVersion,
+    "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
+    "org.slf4j" % "slf4j-api" % slf4jVersion,
+    "ch.qos.logback" % "logback-classic" % logbackVersion,
     "org.scalatest" %% "scalatest" % "2.2.5" % "test"
   )
 ).dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
