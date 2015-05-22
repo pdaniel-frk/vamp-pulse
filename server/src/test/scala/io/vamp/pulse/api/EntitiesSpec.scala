@@ -1,8 +1,8 @@
 package io.vamp.pulse.api
 
+import io.vamp.pulse.http.PulseSerializer
 import io.vamp.pulse.model
 import io.vamp.pulse.eventstream.EventDecoder
-import io.vamp.pulse.util.PulseSerializer
 import org.json4s.native.JsonMethods._
 import org.scalatest.{FlatSpec, Matchers}
 

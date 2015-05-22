@@ -1,8 +1,8 @@
 package io.vamp.pulse.eventstream
 
+import io.vamp.pulse.http.PulseSerializer
 import io.vamp.pulse.model.Event
 import io.vamp.pulse.notification.{PulseNotificationProvider, UnableToDecodeError}
-import io.vamp.pulse.util.PulseSerializer
 import kafka.serializer.{Decoder, StringDecoder}
 import kafka.utils.VerifiableProperties
 import org.json4s._

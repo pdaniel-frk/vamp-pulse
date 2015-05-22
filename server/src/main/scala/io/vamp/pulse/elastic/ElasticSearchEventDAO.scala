@@ -7,9 +7,9 @@ import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.mappings.FieldType._
 import com.sksamuel.elastic4s.source.DocumentSource
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
+import io.vamp.pulse.http.PulseSerializer
 import io.vamp.pulse.model.{Aggregator, Event, EventQuery, TimeRange}
 import io.vamp.pulse.notification.{EmptyEventError, MappingErrorNotification}
-import io.vamp.pulse.util.PulseSerializer
 import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation

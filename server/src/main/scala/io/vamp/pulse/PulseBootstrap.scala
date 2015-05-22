@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.Logger
 import io.vamp.pulse.elastic.{ElasticSearchEventDAO, ElasticSearchLocalServer}
 import io.vamp.pulse.eventstream._
 import io.vamp.pulse.model.Event
-import io.vamp.pulse.server.HttpActor
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.slf4j.LoggerFactory
 import spray.can.Http
@@ -104,13 +103,13 @@ object PulseBootstrap extends App {
 
   private def httpListen(eventDao: ElasticSearchEventDAO) = {
 
-    val server = system.actorOf(HttpActor.props(eventDao), "http-actor")
-    val interface = config.getString("http.interface")
-    val port = config.getInt("http.port")
-
-    implicit val timeout = Timeout(config.getInt("http.response.timeout") seconds)
-
-    IO(Http)(system) ? Http.Bind(server, interface, port)
+//    val server = system.actorOf(HttpActor.props(eventDao), "http-actor")
+//    val interface = config.getString("http.interface")
+//    val port = config.getInt("http.port")
+//
+//    implicit val timeout = Timeout(config.getInt("http.response.timeout") seconds)
+//
+//    IO(Http)(system) ? Http.Bind(server, interface, port)
   }
 
   private def initSourceAndDriver = streamDriverType match {

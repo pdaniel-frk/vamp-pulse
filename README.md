@@ -8,7 +8,7 @@ Pulse is a metric aggregation engine which allows you to store and aggregate eve
 
 What it does?
 
-- Consumes streams of events either from kafka or SSE (server sent events), it is designed to be used with vamp-loadbalancer
+- Consumes streams of events either from kafka or SSE (server sent events), it is designed to be used with vamp-router
     and vamp-core, but you can actually integrate it with your own systems as long as the metric format in the stream
     corresponds to `{"tags":["test_fe_1.frontend.scur"],"value":0,"timestamp":"2015-02-18T04:57:56+00:00"}`
     for SSE event name is simply "metric"

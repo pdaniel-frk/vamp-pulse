@@ -4,9 +4,9 @@ import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.FutureSupport
 import io.vamp.pulse.elastic.{ElasticSearchAggregationResult, ElasticSearchEventDAO, ElasticSearchLocalServer, ElasticSearchResultList}
+import io.vamp.pulse.http.PulseSerializer
 import io.vamp.pulse.model.EventQuery
 import io.vamp.pulse.eventstream.EventDecoder
-import io.vamp.pulse.util.PulseSerializer
 import org.elasticsearch.node.Node
 import org.json4s.native.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
