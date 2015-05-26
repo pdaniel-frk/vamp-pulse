@@ -1,11 +1,7 @@
 package io.vamp.pulse.elasticsearch
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
-import com.sksamuel.elastic4s.mappings.FieldType._
-import com.sksamuel.elastic4s.source.DocumentSource
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model.{Aggregator, Event, EventQuery, TimeRange}
@@ -19,7 +15,6 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 
 import scala.collection._
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.{implicitConversions, postfixOps}
 
@@ -44,10 +39,9 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
       insertQuery(event)
     } recoverWith {
       case e: RemoteTransportException => e.getCause match {
-        case t: MapperParsingException => throw exception(MappingErrorNotification(e.getCause, event.schema.getOrElse("")))
+        case t: MapperParsingException => error(MappingErrorNotification(e.getCause, event.schema.getOrElse("")))
       }
     }
-
   }
 
   private def insertQuery(event: Event): IndexDefinition = {
@@ -141,37 +135,5 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
         ElasticSearchAggregationResult(Map("value" -> value))
     }
   }
-
-  def createIndex = client.execute {
-    create index eventIndex mappings (
-      eventEntity as(
-        "tags" typed StringType index NotAnalyzed,
-        "timestamp" typed DateType,
-        "value" typed ObjectType,
-        "blob" typed ObjectType enabled false
-        )
-      )
-  }
-
-  def cleanupEvents = {
-    client.execute {
-      deleteIndex(eventIndex)
-    } await (60 seconds)
-
-    createIndex await
-  }
 }
 
-class CustomObjectSource(any: Any) extends DocumentSource {
-  override def json: String = CustomObjectSource.mapper.writeValueAsString(any)
-}
-
-object CustomObjectSource {
-  val mapper = new ObjectMapper
-  mapper.findAndRegisterModules()
-  mapper.registerModule(DefaultScalaModule)
-
-  def apply(any: Any) = new CustomObjectSource(any)
-
-  implicit def anyToObjectSource(any: Any): CustomObjectSource = apply(any)
-}

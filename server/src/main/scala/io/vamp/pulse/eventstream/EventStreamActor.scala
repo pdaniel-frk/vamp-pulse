@@ -22,29 +22,34 @@ class EventStreamActor extends CommonActorSupport with PulseNotificationProvider
 
   private val configuration = ConfigFactory.load().getConfig("vamp.pulse.event-stream")
 
-  private lazy val (eventManagerSource: PropsSource[Event], driver: Driver) = initializeSourceAndDriver
+  private lazy val (eventManagerSource: Option[PropsSource[Event]], driver: Option[Driver]) = initializeSourceAndDriver
 
   private implicit val mat = ActorFlowMaterializer()
 
   def receive: Receive = {
-    case Start =>
+    case Start => (eventManagerSource, driver) match {
+      case (Some(source), Some(d)) =>
+        val materializedMap = source.groupedWithin(1000, 1 millis)
+          .map { events => actorFor(ElasticsearchActor) ! ElasticsearchActor.BatchIndex(events); events }
+          .to(Sink.ignore).run()
 
-      val materializedMap = eventManagerSource.groupedWithin(1000, 1 millis)
-        .map { events => actorFor(ElasticsearchActor) ! ElasticsearchActor.BatchIndex(events); events }
-        .to(Sink.ignore).run()
+        d.start(materializedMap.get(source), context.system)
 
-      driver.start(materializedMap.get(eventManagerSource), context.system)
+      case _ =>
+    }
 
     case Shutdown =>
-      driver.stop()
+      driver.foreach(_.stop())
 
     case InfoRequest =>
       sender ! ("driver" -> configuration.getString("driver"))
   }
 
   private def initializeSourceAndDriver = configuration.getString("driver") match {
-    case "sse" => (Source[Event](SSEMetricsPublisher.props), SseDriver)
-    case "kafka" => (Source[Event](KafkaMetricsPublisher.props), KafkaDriver)
-    case driver: String => error(NoEventStreamDriver(driver))
+    case "sse" => (Some(Source[Event](SSEMetricsPublisher.props)), Some(SseDriver))
+    case "kafka" => (Some(Source[Event](KafkaMetricsPublisher.props)), Some(KafkaDriver))
+    case driver: String =>
+      info(NoEventStreamDriver(driver))
+      (None, None)
   }
 }
