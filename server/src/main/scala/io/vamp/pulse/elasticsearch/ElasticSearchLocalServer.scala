@@ -1,4 +1,4 @@
-package io.vamp.pulse.elastic
+package io.vamp.pulse.elasticsearch
 
 import java.nio.file.Files
 

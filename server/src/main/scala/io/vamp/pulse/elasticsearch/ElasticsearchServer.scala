@@ -1,4 +1,4 @@
-package io.vamp.pulse.elastic
+package io.vamp.pulse.elasticsearch
 
 import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.Config

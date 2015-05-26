@@ -1,4 +1,4 @@
-package io.vamp.pulse.elastic
+package io.vamp.pulse.elasticsearch
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule

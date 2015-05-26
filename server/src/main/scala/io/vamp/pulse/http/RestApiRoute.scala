@@ -4,7 +4,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import io.vamp.common.akka.CommonActorSupport
 import io.vamp.common.http.RestApiBase
-import io.vamp.pulse.elastic.ElasticsearchActor
+import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.model.{Event, EventQuery}
 import io.vamp.pulse.notification.PulseNotificationProvider
 import org.json4s.Formats

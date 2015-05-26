@@ -2,7 +2,7 @@ package io.vamp.pulse
 
 import akka.actor._
 import io.vamp.common.akka.{ActorBootstrap, ActorSupport, Bootstrap}
-import io.vamp.pulse.elastic.ElasticsearchActor
+import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.eventstream.EventStreamActor
 import io.vamp.pulse.http.RestApiBootstrap
 

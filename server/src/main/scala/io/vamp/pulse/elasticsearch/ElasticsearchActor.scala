@@ -1,11 +1,11 @@
-package io.vamp.pulse.elastic
+package io.vamp.pulse.elasticsearch
 
 import akka.actor._
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
 import io.vamp.common.vitals.InfoRequest
-import io.vamp.pulse.elastic.ElasticsearchActor.{BatchIndex, Index, Search}
+import io.vamp.pulse.elasticsearch.ElasticsearchActor.{BatchIndex, Index, Search}
 import io.vamp.pulse.model.{Event, EventQuery}
 import io.vamp.pulse.notification.PulseNotificationProvider
 

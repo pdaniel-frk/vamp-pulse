@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka.{ActorDescription, CommonActorSupport}
 import io.vamp.common.vitals.InfoRequest
-import io.vamp.pulse.elastic.ElasticsearchActor
+import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.model.Event
 import io.vamp.pulse.notification.{NoEventStreamDriver, PulseNotificationProvider}
 
