@@ -1,6 +1,7 @@
 package io.vamp.pulse.elastic
 
 import akka.actor._
+import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
 import io.vamp.common.vitals.InfoRequest
@@ -22,10 +23,17 @@ object ElasticsearchActor extends ActorDescription {
 
 class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvider {
 
-  def receive: Receive = {
-    case Start =>
+  private val configuration = ConfigFactory.load().getConfig("vamp.pulse.elasticsearch")
 
-    case Shutdown =>
+  private lazy val client = if (configuration.getString("type").toLowerCase == "embedded")
+    new EmbeddedElasticsearchServer(configuration.getConfig("embedded"))
+  else
+    new RemoteElasticsearchServer(configuration.getConfig("remote"))
+
+  def receive: Receive = {
+    case Start => client.start()
+
+    case Shutdown => client.shutdown()
 
     case InfoRequest => sender ! "You Know, for Search..."
 
