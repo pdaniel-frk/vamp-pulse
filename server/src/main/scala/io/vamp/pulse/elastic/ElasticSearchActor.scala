@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
 import io.vamp.common.vitals.InfoRequest
-import io.vamp.pulse.elastic.ElasticsearchActor.{Index, Search}
+import io.vamp.pulse.elastic.ElasticsearchActor.{BatchIndex, Index, Search}
 import io.vamp.pulse.model.{Event, EventQuery}
 import io.vamp.pulse.notification.PulseNotificationProvider
 
@@ -17,6 +17,8 @@ object ElasticsearchActor extends ActorDescription {
 
   case class Index(event: Event)
 
+  case class BatchIndex(events: List[Event])
+
   case class Search(query: EventQuery)
 
 }
@@ -25,17 +27,23 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private val configuration = ConfigFactory.load().getConfig("vamp.pulse.elasticsearch")
 
-  private lazy val client = if (configuration.getString("type").toLowerCase == "embedded")
+  private lazy val elasticsearch = if (configuration.getString("type").toLowerCase == "embedded")
     new EmbeddedElasticsearchServer(configuration.getConfig("embedded"))
   else
     new RemoteElasticsearchServer(configuration.getConfig("remote"))
 
   def receive: Receive = {
-    case Start => client.start()
+    case Start => elasticsearch.start()
 
-    case Shutdown => client.shutdown()
+    case Shutdown => elasticsearch.shutdown()
 
-    case InfoRequest => sender ! "You Know, for Search..."
+    case InfoRequest =>
+      sender ! "You Know, for Search..."
+    // http://localhost:9200/_nodes/process?pretty
+
+    case BatchIndex(events) =>
+      println(s"events: $events")
+      sender ! events
 
     case Index(event) =>
       println(s"event: $event")

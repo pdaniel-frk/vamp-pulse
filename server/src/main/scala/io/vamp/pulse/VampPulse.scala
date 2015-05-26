@@ -12,7 +12,7 @@ object VampPulse extends App {
   implicit val actorSystem = ActorSystem("vamp-pulse")
 
   val actorBootstrap = new ActorBootstrap {
-    def actors = ActorSupport.actorOf(ElasticsearchActor) :: Nil
+    val actors = ActorSupport.actorOf(ElasticsearchActor) :: Nil
   }
 
   val bootstrap: List[Bootstrap] = actorBootstrap :: RestApiBootstrap :: Nil

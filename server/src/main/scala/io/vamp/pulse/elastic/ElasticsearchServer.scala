@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 trait ElasticsearchServer {
 
-  def elasticClient: ElasticClient
+  def client: ElasticClient
 
   def start(): Unit = {}
 
@@ -39,7 +39,7 @@ class EmbeddedElasticsearchServer(configuration: Config) extends ElasticsearchSe
     node.close()
   }
 
-  def elasticClient = ElasticClient.fromNode(node)
+  def client = ElasticClient.fromNode(node)
 }
 
 class RemoteElasticsearchServer(configuration: Config) extends ElasticsearchServer {
@@ -48,5 +48,5 @@ class RemoteElasticsearchServer(configuration: Config) extends ElasticsearchServ
     .put("cluster.name", configuration.getString("cluster-name"))
     .build
 
-  def elasticClient = ElasticClient.remote(settings, configuration.getString("host"), configuration.getInt("port"))
+  val client = ElasticClient.remote(settings, configuration.getString("host"), configuration.getInt("port"))
 }
