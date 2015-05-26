@@ -14,3 +14,5 @@ case class UnableToConnectError(url: String) extends Notification
 case class NotStreamError(url: String) extends Notification
 
 case class ConnectionSuccessful(url: String) extends Notification
+
+case class NoEventStreamDriver(driver: String) extends Notification

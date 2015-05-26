@@ -17,7 +17,7 @@ object ElasticsearchActor extends ActorDescription {
 
   case class Index(event: Event)
 
-  case class BatchIndex(events: List[Event])
+  case class BatchIndex(events: Seq[Event])
 
   case class Search(query: EventQuery)
 
@@ -32,10 +32,19 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   else
     new RemoteElasticsearchServer(configuration.getConfig("remote"))
 
-  def receive: Receive = {
-    case Start => elasticsearch.start()
+  //  lazy val eventDao = {
+  //    implicit val executionContext = context.dispatcher
+  //    implicit val elasticSearchClient = elasticsearch.client
+  //    new ElasticSearchEventDAO
+  //  }
 
-    case Shutdown => elasticsearch.shutdown()
+  def receive: Receive = {
+    case Start =>
+      elasticsearch.start()
+    //      eventDao.createIndex
+
+    case Shutdown =>
+      elasticsearch.shutdown()
 
     case InfoRequest =>
       sender ! "You Know, for Search..."

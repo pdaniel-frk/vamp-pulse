@@ -8,14 +8,15 @@ import kafka.serializer.DefaultDecoder
 
 trait Driver {
 
-  protected val config = ConfigFactory.load().getConfig("stream")
-
   def start(ref: ActorRef, system: ActorSystem)
 
   def stop()
 }
 
 object SseDriver extends Driver {
+
+  private val config = ConfigFactory.load().getConfig("vamp.pulse.event-stream.sse")
+
   private var sseActorRef: ActorRef = _
 
   override def start(ref: ActorRef, system: ActorSystem): Unit = {
@@ -29,6 +30,9 @@ object SseDriver extends Driver {
 }
 
 object KafkaDriver extends Driver {
+
+  private val config = ConfigFactory.load().getConfig("vamp.pulse.event-stream.kafka")
+
   private var consumer: Option[AkkaConsumer[Array[Byte], Event]] = Option.empty
 
   override def start(ref: ActorRef, system: ActorSystem): Unit = {

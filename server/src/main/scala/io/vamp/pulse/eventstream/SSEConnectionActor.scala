@@ -26,7 +26,6 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
 
   private val decoder = new EventDecoder()
 
-
   val target = {
     val conf: ClientConfig = new ClientConfig()
     conf.property(ClientProperties.CONNECT_TIMEOUT, config.getInt("http.connect"))
@@ -95,10 +94,7 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
         case _ => exception(NotStreamError(streamUrl))
       }
 
-
       if (isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)
-
-
   }
 }
 

@@ -4,10 +4,11 @@ import com.typesafe.config.ConfigFactory
 import io.vamp.common.http.{InfoBaseRoute, InfoMessageBase, RestApiBase}
 import io.vamp.common.vitals.JvmVitals
 import io.vamp.pulse.elastic.ElasticsearchActor
+import io.vamp.pulse.eventstream.EventStreamActor
 
 import scala.language.{existentials, postfixOps}
 
-case class InfoMessage(message: String, jvm: JvmVitals, elasticSearch: Any) extends InfoMessageBase
+case class InfoMessage(message: String, jvm: JvmVitals, elasticSearch: Any, stream: Any) extends InfoMessageBase
 
 trait InfoRoute extends InfoBaseRoute {
   this: RestApiBase =>
@@ -17,7 +18,8 @@ trait InfoRoute extends InfoBaseRoute {
   def info(jvm: JvmVitals): InfoMessage = {
     InfoMessage(infoMessage,
       jvm,
-      info(ElasticsearchActor)
+      info(ElasticsearchActor),
+      info(EventStreamActor)
     )
   }
 }

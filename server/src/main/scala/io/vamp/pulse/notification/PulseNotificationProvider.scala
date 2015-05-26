@@ -21,5 +21,5 @@ trait PulseActorLoggingNotificationProvider extends ActorLoggingNotificationProv
 object PulseNotificationActor {
   private val config = ConfigFactory.load()
 
-  def props(): Props = Props(new PulseNotificationActor(config.getString("notification.pulse.url")))
+  def props(): Props = Props(new PulseNotificationActor(s"${config.getString("vamp.pulse.rest-api.interface")}:${config.getString("vamp.pulse.rest-api.port")}"))
 }

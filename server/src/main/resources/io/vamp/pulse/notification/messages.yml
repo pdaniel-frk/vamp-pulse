@@ -6,6 +6,7 @@ UnableToDecodeError      : "Error trying to parse an event: {exception}."
 UnableToConnectError     : "Unable to connect: stream {url} is unreachable."
 NotStreamError           : "Unable to get data: {url} is not a stream."
 ConnectionSuccessful     : "Stream connection successful: {url}."
+NoEventStreamDriver      : "No event stream driver found for: {driver}."
 
 #DAO
 MappingErrorNotification : "Unable to save the object because it does not correspond to it's schema: '{schema}'."
