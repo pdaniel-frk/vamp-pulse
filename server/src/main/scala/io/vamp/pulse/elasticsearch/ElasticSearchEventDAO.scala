@@ -5,12 +5,9 @@ import com.sksamuel.elastic4s._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model.{Aggregator, Event, EventQuery, TimeRange}
-import io.vamp.pulse.notification.{EmptyEventError, MappingErrorNotification}
-import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
 import org.elasticsearch.search.sort.SortOrder
-import org.elasticsearch.transport.RemoteTransportException
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
@@ -25,41 +22,10 @@ final case class ElasticSearchAggregationResult(map: Map[String, Double])
 class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executionContext: ExecutionContext)
   extends LoggingNotificationProvider with DefaultPackageMessageResolverProvider {
 
-  import CustomObjectSource._
-
   private val eventEntity = "event"
   private val eventIndex = "events"
 
   implicit val formats = PulseSerializationFormat.serializer
-
-  def insert(event: Event) = {
-    if (event.tags.isEmpty) error(EmptyEventError)
-
-    client.execute {
-      insertQuery(event)
-    } recoverWith {
-      case e: RemoteTransportException => e.getCause match {
-        case t: MapperParsingException => error(MappingErrorNotification(e.getCause, event.schema.getOrElse("")))
-      }
-    }
-  }
-
-  private def insertQuery(event: Event): IndexDefinition = {
-    index into s"$eventIndex/$eventEntity" doc event
-  }
-
-  def batchInsert(eventList: Seq[Event]) = {
-    batchInsertFuture(eventList) await
-  }
-
-  def batchInsertFuture(eventList: Seq[Event]) = {
-    client.execute {
-      bulk(
-        eventList.filter(_.tags.nonEmpty).map(event => insertQuery(event))
-      )
-    }
-  }
-
 
   def getEvents(eventQuery: EventQuery): Future[Any] = {
     eventQuery.aggregator match {

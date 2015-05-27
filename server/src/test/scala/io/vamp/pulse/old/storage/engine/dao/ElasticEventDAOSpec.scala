@@ -3,10 +3,10 @@ package io.vamp.pulse.old.storage.engine.dao
 import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.FutureSupport
-import io.vamp.pulse.elasticsearch.{ElasticSearchAggregationResult, ElasticSearchEventDAO, ElasticSearchLocalServer, ElasticSearchResultList}
+import io.vamp.pulse.elasticsearch.{ElasticSearchAggregationResult, ElasticSearchEventDAO, ElasticSearchResultList}
+import io.vamp.pulse.eventstream.EventDecoder
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model.EventQuery
-import io.vamp.pulse.eventstream.EventDecoder
 import org.elasticsearch.node.Node
 import org.json4s.native.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
@@ -24,7 +24,7 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll 
   val config = ConfigFactory.load()
 
   val esConf = config.getConfig("storage.es")
-  val serverWrapper = new ElasticSearchLocalServer(esConf.getString("cluster.name"), true, true)
+  //val serverWrapper = new ElasticSearchLocalServer(esConf.getString("cluster.name"), true, true)
   var server: Node = _
 
   implicit var esClient: ElasticClient = _
@@ -33,15 +33,15 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll 
   val decoder = new EventDecoder()
 
 
-  override protected def beforeAll() = {
-    server = serverWrapper.start
-    esClient = ElasticClient.fromClient(server.client())
-    super.beforeAll()
-  }
-
-  override protected def afterAll() = {
-    serverWrapper.stop()
-  }
+//  override protected def beforeAll() = {
+  //    server = serverWrapper.start
+  //    esClient = ElasticClient.fromClient(server.client())
+  //    super.beforeAll()
+  //  }
+  //
+  //  override protected def afterAll() = {
+  //    serverWrapper.stop()
+  //  }
 
   //  "MetricDAO" should "be able to insert about 25000 metrics per second in batches of 1000" in {
   //    val str = decoder.fromString(Source.fromURL(getClass.getResource("/metric.json")).mkString)

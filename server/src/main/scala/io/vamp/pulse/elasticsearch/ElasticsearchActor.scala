@@ -1,18 +1,12 @@
 package io.vamp.pulse.elasticsearch
 
-import java.io.StringWriter
-
 import akka.actor._
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.IndexDefinition
 import com.sksamuel.elastic4s.mappings.FieldType.{DateType, ObjectType, StringType}
-import com.sksamuel.elastic4s.source.DocumentSource
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
-import io.vamp.common.http.RestClient
 import io.vamp.common.vitals.InfoRequest
 import io.vamp.pulse.elasticsearch.ElasticsearchActor.{BatchIndex, Index, Search}
 import io.vamp.pulse.http.PulseSerializationFormat
@@ -22,7 +16,7 @@ import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.transport.RemoteTransportException
 
 import scala.collection.Seq
-import scala.language.{implicitConversions, postfixOps}
+import scala.language.postfixOps
 
 object ElasticsearchActor extends ActorDescription {
 
@@ -112,16 +106,3 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 }
 
-class CustomObjectSource(any: Any) extends DocumentSource {
-  override def json: String = CustomObjectSource.mapper.writeValueAsString(any)
-}
-
-object CustomObjectSource {
-  val mapper = new ObjectMapper
-  mapper.findAndRegisterModules()
-  mapper.registerModule(DefaultScalaModule)
-
-  def apply(any: Any) = new CustomObjectSource(any)
-
-  implicit def anyToObjectSource(any: Any): CustomObjectSource = apply(any)
-}
