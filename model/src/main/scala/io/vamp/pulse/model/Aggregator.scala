@@ -10,7 +10,7 @@ object Aggregator extends Enumeration {
   val min, max, average, count = Value
 }
 
-case class Aggregator(`type`: AggregatorType, field: Option[String] = None)
+case class Aggregator(`type`: Option[AggregatorType], field: Option[String] = None)
 
 
 trait AggregationResult

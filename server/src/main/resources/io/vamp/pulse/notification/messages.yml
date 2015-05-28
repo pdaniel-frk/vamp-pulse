@@ -1,5 +1,5 @@
 # Decoder
-EmptyEventError$         : "Event or metric without tags is not allowed."
+EmptyEventError$         : "Inserting an event without tags is not allowed."
 UnableToDecodeError      : "Error trying to parse an event: {exception}."
 
 # SSE Driver
@@ -10,3 +10,6 @@ NoEventStreamDriver      : "No event stream driver found for: {driver}."
 
 #DAO
 MappingErrorNotification : "Unable to save the object because it does not correspond to it's schema: '{schema}'."
+
+# Elasticsearch
+AggregatorNotSupported   : "Aggreagator not supported."

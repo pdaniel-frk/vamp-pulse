@@ -5,6 +5,7 @@ import com.sksamuel.elastic4s._
 import io.vamp.common.notification.{DefaultPackageMessageResolverProvider, LoggingNotificationProvider}
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model.{Aggregator, Event, EventQuery, TimeRange}
+import io.vamp.pulse.notification.AggregatorNotSupported
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
 import org.elasticsearch.search.sort.SortOrder
@@ -70,7 +71,7 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
 
 
   private def getAggregateEvents(query: EventQuery) = {
-    val aggregator = query.aggregator.getOrElse(Aggregator(Aggregator.average))
+    val aggregator = query.aggregator.getOrElse(Aggregator(Some(Aggregator.average)))
     val aggFieldParts = List("value", aggregator.field.getOrElse(""))
     val aggField = aggFieldParts.filter(p => !p.isEmpty).mkString(".")
     val qFilter = queryFilter(must(constructQuery(query)))
@@ -82,10 +83,10 @@ class ElasticSearchEventDAO(implicit client: ElasticClient, implicit val executi
           qFilter
         } aggs {
           aggregator.`type` match {
-            case Aggregator.`average` => aggregation avg "val_agg" field aggField
-            case Aggregator.`min` => aggregation min "val_agg" field aggField
-            case Aggregator.`max` => aggregation max "val_agg" field aggField
-            case t: Aggregator.Value => throw new Exception(s"No such aggregation implemented $t")
+            case Some(Aggregator.`average`) => aggregation avg "val_agg" field aggField
+            case Some(Aggregator.`min`) => aggregation min "val_agg" field aggField
+            case Some(Aggregator.`max`) => aggregation max "val_agg" field aggField
+            case _ => error(AggregatorNotSupported())
           }
         }
       }
