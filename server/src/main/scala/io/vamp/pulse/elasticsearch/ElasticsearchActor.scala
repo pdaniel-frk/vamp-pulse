@@ -8,7 +8,6 @@ import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
 import io.vamp.common.vitals.InfoRequest
-import io.vamp.pulse.api.AggregatorType
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model._
 import io.vamp.pulse.notification.{AggregatorNotSupported, EmptyEventError, MappingErrorNotification, PulseNotificationProvider}
@@ -69,7 +68,11 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
     case Shutdown => elasticsearch.shutdown()
   }
 
-  def replyWith(reply: Future[_]) = sender ! offload(reply)
+  private def replyWith(callback: => Future[_]): Unit = try {
+    sender ! offload(callback)
+  } catch {
+    case e: Exception => sender ! e
+  }
 
   private def insertEvent(event: Event) = {
     if (event.tags.isEmpty) error(EmptyEventError)
@@ -95,7 +98,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
     index into s"$indexName/event" doc event
   }
 
-  private def queryEvents(eventQuery: EventQuery) = {
+  private def queryEvents(eventQuery: EventQuery): Future[_] = {
     eventQuery.aggregator match {
       case None => getEvents(eventQuery)
       case Some(Aggregator(Some(Aggregator.`count`), _)) => countEvents(eventQuery)
