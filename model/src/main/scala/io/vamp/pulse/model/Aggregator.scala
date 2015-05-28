@@ -15,4 +15,4 @@ case class Aggregator(`type`: Option[AggregatorType], field: Option[String] = No
 
 trait AggregationResult
 
-case class NumericAggregationResult(value: Double) extends AggregationResult
+case class SingleValueAggregationResult(value: AnyVal) extends AggregationResult

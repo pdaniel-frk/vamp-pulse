@@ -8,6 +8,7 @@ import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
 import io.vamp.common.vitals.InfoRequest
+import io.vamp.pulse.api.AggregatorType
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model._
 import io.vamp.pulse.notification.{AggregatorNotSupported, EmptyEventError, MappingErrorNotification, PulseNotificationProvider}
@@ -96,20 +97,31 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def queryEvents(eventQuery: EventQuery) = {
     eventQuery.aggregator match {
-      case None => searchEvents(eventQuery)
-      case Some(aggregator) => aggregateEvents(eventQuery, aggregator)
+      case None => getEvents(eventQuery)
+      case Some(Aggregator(Some(Aggregator.`count`), _)) => countEvents(eventQuery)
+      case Some(aggregator) => aggregateEvents(eventQuery)
     }
   }
 
-  private def searchEvents(eventQuery: EventQuery) = {
-    elasticsearch.client.execute {
-      search in indexName -> "event" query {
-        must(constructQuery(eventQuery))
-      } sort (by field "timestamp" order SortOrder.DESC) start 0 limit 30
-    } map {
+  private def getEvents(eventQuery: EventQuery, eventLimit: Int = 30) = {
+    searchEvents(eventQuery, eventLimit) map {
       response =>
         implicit val formats = PulseSerializationFormat.deserializer
         response.getHits.hits().map(hit => parse(hit.sourceAsString()).extract[Event]).toList
+    }
+  }
+
+  private def countEvents(eventQuery: EventQuery) = {
+    searchEvents(eventQuery, 0) map {
+      response => SingleValueAggregationResult(response.getHits.totalHits())
+    }
+  }
+
+  private def searchEvents(eventQuery: EventQuery, eventLimit: Int) = {
+    elasticsearch.client.execute {
+      search in indexName -> "event" query {
+        must(constructQuery(eventQuery))
+      } sort (by field "timestamp" order SortOrder.DESC) start 0 limit eventLimit
     }
   }
 
@@ -129,7 +141,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
     case _ => rangeQuery("timestamp")
   }
 
-  private def aggregateEvents(eventQuery: EventQuery, aggregator: Aggregator) = {
+  private def aggregateEvents(eventQuery: EventQuery) = {
+    val aggregator = eventQuery.aggregator.get
     val aggregationField = List("value", aggregator.field.getOrElse("")).filter(p => !p.isEmpty).mkString(".")
 
     elasticsearch.client.execute {
@@ -141,7 +154,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
             case Some(Aggregator.`average`) => aggregation avg "val_agg" field aggregationField
             case Some(Aggregator.`min`) => aggregation min "val_agg" field aggregationField
             case Some(Aggregator.`max`) => aggregation max "val_agg" field aggregationField
-            case None => error(AggregatorNotSupported())
+            case _ => error(AggregatorNotSupported())
           }
         }
       }
@@ -152,7 +165,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
           .getAggregations.get("val_agg").asInstanceOf[InternalNumericMetricsAggregation.SingleValue]
           .value()
 
-        NumericAggregationResult(if (value.isNaN || value.isInfinite) 0D else value)
+        SingleValueAggregationResult(if (value.isNaN || value.isInfinite) 0D else value)
     }
   }
 }

@@ -9,31 +9,31 @@ import scala.concurrent.Future
 trait Aggregation {
   this: PulseClient =>
 
-  def count(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[NumericAggregationResult] =
+  def count(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[SingleValueAggregationResult] =
     count(tags, Some(from), Some(to))
 
-  def count(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[NumericAggregationResult] =
-    aggregate(tags, from, to, Aggregator(Aggregator.count, field))
+  def count(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[SingleValueAggregationResult] =
+    aggregate(tags, from, to, Aggregator(Some(Aggregator.count), field))
 
-  def max(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[NumericAggregationResult] =
+  def max(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[SingleValueAggregationResult] =
     max(tags, Some(from), Some(to))
 
-  def max(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[NumericAggregationResult] =
-    aggregate(tags, from, to, Aggregator(Aggregator.max, field))
+  def max(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[SingleValueAggregationResult] =
+    aggregate(tags, from, to, Aggregator(Some(Aggregator.max), field))
 
-  def min(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[NumericAggregationResult] =
+  def min(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[SingleValueAggregationResult] =
     min(tags, Some(from), Some(to))
 
-  def min(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[NumericAggregationResult] =
-    aggregate(tags, from, to, Aggregator(Aggregator.min, field))
+  def min(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[SingleValueAggregationResult] =
+    aggregate(tags, from, to, Aggregator(Some(Aggregator.min), field))
 
-  def average(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[NumericAggregationResult] =
+  def average(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime): Future[SingleValueAggregationResult] =
     average(tags, Some(from), Some(to))
 
-  def average(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[NumericAggregationResult] =
-    aggregate(tags, from, to, Aggregator(Aggregator.average, field))
+  def average(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, field: Option[String] = None): Future[SingleValueAggregationResult] =
+    aggregate(tags, from, to, Aggregator(Some(Aggregator.average), field))
 
-  def aggregate(tags: Set[String], from: Option[OffsetDateTime], to: Option[OffsetDateTime], aggregator: Aggregator): Future[NumericAggregationResult] =
-    eventQuery[NumericAggregationResult](EventQuery(tags, Some(TimeRange(from, to)), Some(aggregator)))
+  def aggregate(tags: Set[String], from: Option[OffsetDateTime], to: Option[OffsetDateTime], aggregator: Aggregator): Future[SingleValueAggregationResult] =
+    eventQuery[SingleValueAggregationResult](EventQuery(tags, Some(TimeRange(from, to)), Some(aggregator)))
 }
 

@@ -3,18 +3,11 @@ package io.vamp.pulse.old.storage.engine.dao
 import com.sksamuel.elastic4s.ElasticClient
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.FutureSupport
-import io.vamp.pulse.elasticsearch.{ElasticSearchAggregationResult, ElasticSearchEventDAO, ElasticSearchResultList}
 import io.vamp.pulse.eventstream.EventDecoder
 import io.vamp.pulse.http.PulseSerializationFormat
-import io.vamp.pulse.model.EventQuery
 import org.elasticsearch.node.Node
-import org.json4s.native.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.io.Source
 import scala.language.postfixOps
 
 class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll with FutureSupport {
@@ -28,12 +21,12 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll 
   var server: Node = _
 
   implicit var esClient: ElasticClient = _
-  lazy val dao = new ElasticSearchEventDAO
+  //lazy val dao = new ElasticSearchEventDAO
 
   val decoder = new EventDecoder()
 
 
-//  override protected def beforeAll() = {
+  //  override protected def beforeAll() = {
   //    server = serverWrapper.start
   //    esClient = ElasticClient.fromClient(server.client())
   //    super.beforeAll()
@@ -55,22 +48,22 @@ class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll 
   //
   //  }
 
-  "MetricDAO" should "fetch records from elastic-search by tags and date-range" in {
-    val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
-    val metricQuery = parse(str).extract[EventQuery]
-    val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
-
-    resp shouldBe a[ElasticSearchResultList]
-
-  }
-
-  "MetricDAO" should "aggregate records from elastic-search by tags and date-range" in {
-    val str = Source.fromURL(getClass.getResource("/metricQueryAgg.json")).mkString
-    val metricQuery = parse(str).extract[EventQuery]
-    val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
-    resp shouldBe a[ElasticSearchAggregationResult]
-
-  }
+  //  "MetricDAO" should "fetch records from elastic-search by tags and date-range" in {
+  //    val str = Source.fromURL(getClass.getResource("/metricQuery.json")).mkString
+  //    val metricQuery = parse(str).extract[EventQuery]
+  //    val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
+  //
+  //    resp shouldBe a[ElasticSearchResultList]
+  //
+  //  }
+  //
+  //  "MetricDAO" should "aggregate records from elastic-search by tags and date-range" in {
+  //    val str = Source.fromURL(getClass.getResource("/metricQueryAgg.json")).mkString
+  //    val metricQuery = parse(str).extract[EventQuery]
+  //    val resp = Await.result(dao.getEvents(metricQuery), 10 seconds)
+  //    resp shouldBe a[ElasticSearchAggregationResult]
+  //
+  //  }
 
 
 }
