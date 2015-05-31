@@ -1,0 +1,18 @@
+{
+  "template": "$NAME-*",
+  "order": 1,
+  "settings": {
+    "number_of_shards": 5
+  },
+  "mappings": {
+    "_default_": {
+      "_all": {
+        "enabled": false
+      }
+    }
+  },
+  "aliases": {
+    "$NAME": {
+    }
+  }
+}

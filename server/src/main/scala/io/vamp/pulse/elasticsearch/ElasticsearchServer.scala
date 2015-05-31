@@ -14,8 +14,6 @@ trait ElasticsearchServer {
   def start(): Unit = {}
 
   def shutdown(): Unit = {}
-
-  def info = client.admin.cluster().prepareClusterStats().execute().actionGet().getIndicesStats
 }
 
 class EmbeddedElasticsearchServer(configuration: Config) extends ElasticsearchServer {

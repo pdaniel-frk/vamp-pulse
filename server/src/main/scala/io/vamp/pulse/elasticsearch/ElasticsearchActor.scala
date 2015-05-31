@@ -1,5 +1,8 @@
 package io.vamp.pulse.elasticsearch
 
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+
 import akka.actor._
 import akka.util.Timeout
 import com.sksamuel.elastic4s.ElasticDsl._
@@ -40,7 +43,7 @@ object ElasticsearchActor extends ActorDescription {
 
 }
 
-class ElasticsearchActor extends CommonActorSupport with IndexName with PulseNotificationProvider {
+class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvider {
 
   import CustomObjectSource._
   import ElasticsearchActor._
@@ -48,7 +51,9 @@ class ElasticsearchActor extends CommonActorSupport with IndexName with PulseNot
 
   implicit val timeout = ElasticsearchActor.timeout
 
-  val indexConfiguration = configuration.getConfig("elasticsearch.index")
+  private val indexConfiguration = configuration.getConfig("elasticsearch.index")
+
+  private val defaultIndex = indexConfiguration.getString("name")
 
   private lazy val elasticsearch = if (configuration.getString("elasticsearch.type").toLowerCase == "embedded")
     new EmbeddedElasticsearchServer(configuration.getConfig("elasticsearch.embedded"))
@@ -57,7 +62,7 @@ class ElasticsearchActor extends CommonActorSupport with IndexName with PulseNot
 
   def receive: Receive = {
 
-    case InfoRequest => sender ! elasticsearch.info
+    case InfoRequest => info()
 
     case BatchIndex(events) => replyWith(insertEvent(events) map { _ => events })
 
@@ -65,9 +70,29 @@ class ElasticsearchActor extends CommonActorSupport with IndexName with PulseNot
 
     case Search(query) => replyWith(queryEvents(query))
 
-    case Start => elasticsearch.start()
+    case Start => start()
 
-    case Shutdown => elasticsearch.shutdown()
+    case Shutdown => shutdown()
+  }
+
+  private def info() = {
+    sender ! elasticsearch.client.admin.cluster.prepareClusterStats.execute.actionGet.getIndicesStats
+  }
+
+  private def start() = {
+    elasticsearch.start()
+
+    elasticsearch.client.execute {
+      get template defaultIndex
+    } map { response =>
+      if (response.getIndexTemplates.isEmpty) {
+        // TODO create a new template
+      }
+    }
+  }
+
+  private def shutdown() = {
+    elasticsearch.shutdown()
   }
 
   private def replyWith(callback: => Future[_]): Unit = try {
@@ -97,8 +122,15 @@ class ElasticsearchActor extends CommonActorSupport with IndexName with PulseNot
   }
 
   private def insertQuery(event: Event): IndexDefinition = {
-    val (indexName, indexTypeName) = indexNameFor(event)
-    index into(indexName, indexTypeName) doc event
+    val schema = event.`type`
+
+    val time = {
+      val path = s"time-format.$schema"
+      val format = indexConfiguration.getString(if (indexConfiguration.hasPath(path)) path else "event")
+      OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format))
+    }
+
+    index into(s"$defaultIndex-$schema-$time", schema) doc event
   }
 
   private def queryEvents(eventQuery: EventQuery): Future[_] = {
