@@ -17,4 +17,4 @@ object Event {
   }
 }
 
-case class Event(tags: Set[String], value: AnyRef, timestamp: OffsetDateTime = OffsetDateTime.now(), `type`: Option[String] = None)
+case class Event(tags: Set[String], value: AnyRef, timestamp: OffsetDateTime = OffsetDateTime.now(), `type`: String = "event")

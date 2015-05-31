@@ -1,7 +1,5 @@
 package io.vamp.pulse.elasticsearch
 
-import java.time.OffsetDateTime
-
 import akka.actor._
 import akka.util.Timeout
 import com.sksamuel.elastic4s.ElasticDsl._
@@ -42,7 +40,7 @@ object ElasticsearchActor extends ActorDescription {
 
 }
 
-class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvider {
+class ElasticsearchActor extends CommonActorSupport with IndexName with PulseNotificationProvider {
 
   import CustomObjectSource._
   import ElasticsearchActor._
@@ -50,9 +48,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   implicit val timeout = ElasticsearchActor.timeout
 
-  private val indexName = configuration.getString("elasticsearch.index-name")
-
-  private val indexTypeName = "event"
+  val indexConfiguration = configuration.getConfig("elasticsearch.index")
 
   private lazy val elasticsearch = if (configuration.getString("elasticsearch.type").toLowerCase == "embedded")
     new EmbeddedElasticsearchServer(configuration.getConfig("elasticsearch.embedded"))
@@ -87,7 +83,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
       insertQuery(event)
     } recoverWith {
       case e: RemoteTransportException => e.getCause match {
-        case t: MapperParsingException => error(MappingErrorNotification(e.getCause, event.`type`.getOrElse("")))
+        case t: MapperParsingException => error(MappingErrorNotification(e.getCause, event.`type`))
       }
     }
   }
@@ -101,7 +97,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def insertQuery(event: Event): IndexDefinition = {
-    index into s"$indexName/event" doc event
+    val (indexName, indexTypeName) = indexNameFor(event)
+    index into(indexName, indexTypeName) doc event
   }
 
   private def queryEvents(eventQuery: EventQuery): Future[_] = {
@@ -128,7 +125,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def searchEvents(eventQuery: EventQuery, eventLimit: Int) = {
     elasticsearch.client.execute {
-      search in indexName -> indexTypeName query {
+      search in defaultIndex query {
         must(constructQuery(eventQuery))
       } sort (by field "timestamp" order SortOrder.DESC) start 0 limit eventLimit
     }
@@ -163,7 +160,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
     val aggregationField = List("value", aggregator.field.getOrElse("")).filter(p => !p.isEmpty).mkString(".")
 
     elasticsearch.client.execute {
-      search in indexName -> indexTypeName searchType SearchType.Count aggs {
+      search in defaultIndex searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
           queryFilter(must(constructQuery(eventQuery)))
         } aggs {
