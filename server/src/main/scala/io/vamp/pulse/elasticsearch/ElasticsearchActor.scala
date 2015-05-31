@@ -1,5 +1,7 @@
 package io.vamp.pulse.elasticsearch
 
+import java.time.OffsetDateTime
+
 import akka.actor._
 import akka.util.Timeout
 import com.sksamuel.elastic4s.ElasticDsl._
@@ -7,6 +9,7 @@ import com.sksamuel.elastic4s.{IndexDefinition, QueryDefinition, SearchType}
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
+import io.vamp.common.json.OffsetDateTimeSerializer
 import io.vamp.common.vitals.InfoRequest
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model._
@@ -43,10 +46,13 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   import CustomObjectSource._
   import ElasticsearchActor._
+  import OffsetDateTimeSerializer._
 
   implicit val timeout = ElasticsearchActor.timeout
 
   private val indexName = configuration.getString("elasticsearch.index-name")
+
+  private val indexTypeName = "event"
 
   private lazy val elasticsearch = if (configuration.getString("elasticsearch.type").toLowerCase == "embedded")
     new EmbeddedElasticsearchServer(configuration.getConfig("elasticsearch.embedded"))
@@ -122,7 +128,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def searchEvents(eventQuery: EventQuery, eventLimit: Int) = {
     elasticsearch.client.execute {
-      search in indexName -> "event" query {
+      search in indexName -> indexTypeName query {
         must(constructQuery(eventQuery))
       } sort (by field "timestamp" order SortOrder.DESC) start 0 limit eventLimit
     }
@@ -137,11 +143,13 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
       queries :+ (termsQuery("tags", eventQuery.tags.toSeq: _*) minimumShouldMatch tagNum)
   }
 
-  private def constructTimeQuery(timeRange: Option[TimeRange]) = timeRange match {
-    case Some(TimeRange(Some(from), Some(to))) => rangeQuery("timestamp") from from.toEpochSecond to to.toEpochSecond
-    case Some(TimeRange(None, Some(to))) => rangeQuery("timestamp") to to.toEpochSecond
-    case Some(TimeRange(Some(from), None)) => rangeQuery("timestamp") from from.toEpochSecond
-    case _ => rangeQuery("timestamp")
+  private def constructTimeQuery(timeRange: Option[TimeRange]) = {
+    timeRange match {
+      case Some(TimeRange(Some(from), Some(to))) => rangeQuery("timestamp") from toUnixMicro(from) to toUnixMicro(to)
+      case Some(TimeRange(None, Some(to))) => rangeQuery("timestamp") to toUnixMicro(to)
+      case Some(TimeRange(Some(from), None)) => rangeQuery("timestamp") from toUnixMicro(from)
+      case _ => rangeQuery("timestamp")
+    }
   }
 
   private def aggregateEvents(eventQuery: EventQuery) = {
@@ -149,7 +157,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
     val aggregationField = List("value", aggregator.field.getOrElse("")).filter(p => !p.isEmpty).mkString(".")
 
     elasticsearch.client.execute {
-      search in indexName -> "event" searchType SearchType.Count aggs {
+      search in indexName -> indexTypeName searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
           queryFilter(must(constructQuery(eventQuery)))
         } aggs {
