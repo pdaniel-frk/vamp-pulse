@@ -145,9 +145,15 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def constructTimeQuery(timeRange: Option[TimeRange]) = {
     timeRange match {
-      case Some(TimeRange(Some(from), Some(to))) => rangeQuery("timestamp") from toUnixMicro(from) to toUnixMicro(to)
-      case Some(TimeRange(None, Some(to))) => rangeQuery("timestamp") to toUnixMicro(to)
-      case Some(TimeRange(Some(from), None)) => rangeQuery("timestamp") from toUnixMicro(from)
+      case Some(TimeRange(Some(from), Some(to), lower, upper)) =>
+        rangeQuery("timestamp") from toUnixMicro(from) includeLower lower to toUnixMicro(to) includeUpper upper
+
+      case Some(TimeRange(None, Some(to), _, upper)) =>
+        rangeQuery("timestamp") to toUnixMicro(to) includeUpper upper
+
+      case Some(TimeRange(Some(from), None, lower, _)) =>
+        rangeQuery("timestamp") from toUnixMicro(from) includeLower lower
+
       case _ => rangeQuery("timestamp")
     }
   }
