@@ -6,16 +6,15 @@ import java.time.format.DateTimeFormatter
 import akka.actor._
 import akka.util.Timeout
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.{IndexDefinition, QueryDefinition, SearchType}
+import com.sksamuel.elastic4s._
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
 import io.vamp.common.http.RestClient
-import io.vamp.common.json.OffsetDateTimeSerializer
 import io.vamp.common.vitals.InfoRequest
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model._
-import io.vamp.pulse.notification.{AggregatorNotSupported, EmptyEventError, MappingErrorNotification, PulseNotificationProvider}
+import io.vamp.pulse.notification._
 import org.elasticsearch.index.mapper.MapperParsingException
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation
@@ -49,7 +48,6 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   import CustomObjectSource._
   import ElasticsearchActor._
-  import OffsetDateTimeSerializer._
 
   implicit val timeout = ElasticsearchActor.timeout
 
@@ -140,10 +138,19 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def queryEvents(eventQuery: EventQuery): Future[_] = {
-    eventQuery.aggregator match {
-      case None => getEvents(eventQuery)
-      case Some(Aggregator(Some(Aggregator.`count`), _)) => countEvents(eventQuery)
-      case Some(aggregator) => aggregateEvents(eventQuery)
+    eventQuery.time.foreach { time =>
+      if ((time.lt.isDefined && time.lte.isDefined) || (time.gt.isDefined && time.gte.isDefined)) error(EventQueryTimeError)
+    }
+
+    try {
+      eventQuery.aggregator match {
+        case None => getEvents(eventQuery)
+        case Some(Aggregator(Some(Aggregator.`count`), _)) => countEvents(eventQuery)
+        case Some(aggregator) => aggregateEvents(eventQuery)
+      }
+    }
+    catch {
+      case e: Exception => error(EventQueryError)
     }
   }
 
@@ -179,17 +186,18 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def constructTimeQuery(timeRange: Option[TimeRange]) = {
+    val range = rangeQuery("timestamp")
+
     timeRange match {
-      case Some(TimeRange(Some(from), Some(to), lower, upper)) =>
-        rangeQuery("timestamp") from toUnixMicro(from) includeLower lower to toUnixMicro(to) includeUpper upper
+      case Some(tr) =>
+        val addLt: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.lt.isDefined) r to tr.lt.get.toDouble includeUpper false else r }
+        val addLte: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.lte.isDefined) r to tr.lte.get.toDouble includeUpper true else r }
+        val addGt: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gt.isDefined) r from tr.gt.get.toDouble includeLower false else r }
+        val addGte: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gte.isDefined) r from tr.gte.get.toDouble includeLower true else r }
 
-      case Some(TimeRange(None, Some(to), _, upper)) =>
-        rangeQuery("timestamp") to toUnixMicro(to) includeUpper upper
-
-      case Some(TimeRange(Some(from), None, lower, _)) =>
-        rangeQuery("timestamp") from toUnixMicro(from) includeLower lower
-
-      case _ => rangeQuery("timestamp")
+        val r = (addLt andThen addLte andThen addGt andThen addGte)(range)
+        r
+      case _ => range
     }
   }
 

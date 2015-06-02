@@ -5,6 +5,10 @@ import io.vamp.common.notification.{ErrorNotification, Notification}
 
 object EmptyEventError extends Notification
 
+object EventQueryError extends Notification
+
+object EventQueryTimeError extends Notification
+
 case class UnableToDecodeError(exception: Exception) extends Notification
 
 case class MappingErrorNotification(override val reason: Any, schema: String) extends ErrorNotification
