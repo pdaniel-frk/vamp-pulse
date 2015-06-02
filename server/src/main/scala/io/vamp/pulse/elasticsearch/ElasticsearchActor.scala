@@ -10,6 +10,7 @@ import com.sksamuel.elastic4s.{IndexDefinition, QueryDefinition, SearchType}
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
+import io.vamp.common.http.RestClient
 import io.vamp.common.json.OffsetDateTimeSerializer
 import io.vamp.common.vitals.InfoRequest
 import io.vamp.pulse.http.PulseSerializationFormat
@@ -60,6 +61,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   else
     new RemoteElasticsearchServer(configuration.getConfig("elasticsearch.remote"))
 
+  private val url = configuration.getString("elasticsearch.url")
+
   def receive: Receive = {
 
     case InfoRequest => info()
@@ -76,7 +79,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def info() = {
-    sender ! elasticsearch.client.admin.cluster.prepareClusterStats.execute.actionGet.getIndicesStats
+    val receiver = sender()
+    RestClient.request[Any](s"GET $url").map(response => receiver ! response)
   }
 
   private def start() = {

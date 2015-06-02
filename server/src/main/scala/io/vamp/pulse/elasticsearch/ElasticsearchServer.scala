@@ -16,18 +16,29 @@ trait ElasticsearchServer {
   def shutdown(): Unit = {}
 }
 
+class RemoteElasticsearchServer(configuration: Config) extends ElasticsearchServer {
+
+  private val settings = ImmutableSettings.settingsBuilder()
+    .put("cluster.name", configuration.getString("cluster-name"))
+    .build
+
+  val client = ElasticClient.remote(settings, configuration.getString("host"), configuration.getInt("tcp-port"))
+}
+
 class EmbeddedElasticsearchServer(configuration: Config) extends ElasticsearchServer {
 
   private val logger = Logger(LoggerFactory.getLogger(classOf[EmbeddedElasticsearchServer]))
 
-  private val settings = ImmutableSettings.settingsBuilder()
+  private lazy val node = nodeBuilder().settings(ImmutableSettings.settingsBuilder()
+    .put("transport.tcp.port", configuration.getInt("tcp-port"))
     .put("path.data", configuration.getString("data-directory"))
     .put("cluster.name", configuration.getString("cluster-name"))
-    .put("http.enabled", configuration.getBoolean("rest-api"))
-    .put("node.local", configuration.getBoolean("local-only"))
-    .build
+    .put("http.enabled", true).put("node.local", false)
+    .build).build
 
-  private lazy val node = nodeBuilder().settings(settings).build
+  lazy val client = ElasticClient.remote(ImmutableSettings.settingsBuilder()
+    .put("cluster.name", configuration.getString("cluster-name"))
+    .build, "localhost", configuration.getInt("tcp-port"))
 
   override def start() = {
     logger.info("Starting embedded Elasticsearch server")
@@ -38,15 +49,4 @@ class EmbeddedElasticsearchServer(configuration: Config) extends ElasticsearchSe
     logger.info("Shutting down embedded Elasticsearch server")
     node.close()
   }
-
-  def client = ElasticClient.fromNode(node)
-}
-
-class RemoteElasticsearchServer(configuration: Config) extends ElasticsearchServer {
-
-  private val settings = ImmutableSettings.settingsBuilder()
-    .put("cluster.name", configuration.getString("cluster-name"))
-    .build
-
-  val client = ElasticClient.remote(settings, configuration.getString("host"), configuration.getInt("port"))
 }
