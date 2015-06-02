@@ -26,6 +26,7 @@ import org.json4s.native.JsonMethods._
 import scala.collection.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.io.Source
 import scala.language.postfixOps
 
 object ElasticsearchActor extends ActorDescription {
@@ -90,7 +91,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
       get template defaultIndex
     } map { response =>
       if (response.getIndexTemplates.isEmpty) {
-        // TODO create a new template
+        val template = Source.fromInputStream(getClass.getResourceAsStream("template.json")).mkString.replace("$NAME", defaultIndex)
+        RestClient.request[Any](s"PUT $url/_template/$defaultIndex", template)
       }
     }
   }
