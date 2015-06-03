@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.io.Source
 
 class EntitiesSpec extends FlatSpec with Matchers {
-  implicit val formats = PulseSerializationFormat.serializer
+  implicit val formats = PulseSerializationFormat.api
   val decoder = new EventDecoder()
 
   "MetricQuery" should "be able to be decoded from json" in {

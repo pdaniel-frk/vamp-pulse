@@ -20,5 +20,5 @@ class HttpServerActor extends HttpServerBaseActor with RestApiRoute {
 
   implicit val timeout = HttpServerActor.timeout
 
-  implicit val formats: Formats = PulseSerializationFormat.serializer
+  implicit val formats: Formats = PulseSerializationFormat.api
 }

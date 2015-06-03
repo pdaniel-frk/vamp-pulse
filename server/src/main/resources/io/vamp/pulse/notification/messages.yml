@@ -1,6 +1,7 @@
 # Decoder
 EmptyEventError$         : "Inserting an event without tags is not allowed."
 EventQueryError$         : "Event query error, check request format."
+EventIndexError$         : "An error occured during event indexing."
 EventQueryTimeError$     : "Event query time range is not valid, both 'lt' and 'lte' or 'gt' and 'gte' are not allowed."
 UnableToDecodeError      : "Error trying to parse an event: {exception}."
 

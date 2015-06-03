@@ -10,7 +10,7 @@ import org.json4s.native.JsonMethods._
 
 
 class EventDecoder(props: VerifiableProperties = null) extends Decoder[Event] with PulseNotificationProvider {
-  implicit val formats = PulseSerializationFormat.serializer
+  implicit val formats = PulseSerializationFormat.api
   val stringDecoder = new StringDecoder(props)
 
   override def fromBytes(bytes: Array[Byte]): Event = fromString(stringDecoder.fromBytes(bytes))

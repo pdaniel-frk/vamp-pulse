@@ -18,4 +18,4 @@ object TimeRange {
 
 case class TimeRange(lt: Option[String], lte: Option[String], gt: Option[String], gte: Option[String])
 
-case class EventQuery(tags: Set[String], time: Option[TimeRange], aggregator: Option[Aggregator] = None)
+case class EventQuery(tags: Set[String], timestamp: Option[TimeRange], aggregator: Option[Aggregator] = None)

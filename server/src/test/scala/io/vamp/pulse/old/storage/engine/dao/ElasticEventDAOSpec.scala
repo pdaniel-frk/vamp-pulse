@@ -12,7 +12,7 @@ import scala.language.postfixOps
 
 class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll with FutureSupport {
 
-  implicit val formats = PulseSerializationFormat.serializer
+  implicit val formats = PulseSerializationFormat.api
 
   val config = ConfigFactory.load()
 

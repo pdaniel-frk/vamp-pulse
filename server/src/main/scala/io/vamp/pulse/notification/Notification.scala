@@ -5,6 +5,8 @@ import io.vamp.common.notification.{ErrorNotification, Notification}
 
 object EmptyEventError extends Notification
 
+object EventIndexError extends Notification
+
 object EventQueryError extends Notification
 
 object EventQueryTimeError extends Notification

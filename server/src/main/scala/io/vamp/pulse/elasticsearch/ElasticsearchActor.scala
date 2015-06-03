@@ -85,14 +85,23 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   private def start() = {
     elasticsearch.start()
 
-    elasticsearch.client.execute {
-      get template defaultIndex
-    } map { response =>
-      if (response.getIndexTemplates.isEmpty) {
-        val template = Source.fromInputStream(getClass.getResourceAsStream("template.json")).mkString.replace("$NAME", defaultIndex)
-        RestClient.request[Any](s"PUT $url/_template/$defaultIndex", template)
+    updateTemplates()
+  }
+
+  private def updateTemplates() = {
+    def update(name: String) = {
+      elasticsearch.client.execute {
+        get template s"$defaultIndex-$name"
+      } map { response =>
+        if (response.getIndexTemplates.isEmpty) {
+          val template = Source.fromInputStream(getClass.getResourceAsStream(s"$name.json")).mkString.replace("$NAME", defaultIndex)
+          RestClient.request[Any](s"PUT $url/_template/$defaultIndex-$name", template)
+        }
       }
     }
+
+    update("template")
+    update("template-event")
   }
 
   private def shutdown() = {
@@ -110,6 +119,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
     elasticsearch.client.execute {
       insertQuery(event)
+    } map { response =>
+      if (!response.isCreated) error(EventIndexError) else response
     } recoverWith {
       case e: RemoteTransportException => e.getCause match {
         case t: MapperParsingException => error(MappingErrorNotification(e.getCause, event.`type`))
@@ -138,7 +149,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def queryEvents(eventQuery: EventQuery): Future[_] = {
-    eventQuery.time.foreach { time =>
+    eventQuery.timestamp.foreach { time =>
       if ((time.lt.isDefined && time.lte.isDefined) || (time.gt.isDefined && time.gte.isDefined)) error(EventQueryTimeError)
     }
 
@@ -157,8 +168,12 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   private def getEvents(eventQuery: EventQuery, eventLimit: Int = 30) = {
     searchEvents(eventQuery, eventLimit) map {
       response =>
-        implicit val formats = PulseSerializationFormat.deserializer
-        response.getHits.hits().map(hit => parse(hit.sourceAsString()).extract[Event]).toList
+        implicit val formats = PulseSerializationFormat.elasticsearch
+        response.getHits.hits().map { hit =>
+          parse(hit.sourceAsString()).extract[Event]
+        } toList
+    } recoverWith {
+      case e: Exception => error(EventQueryError)
     }
   }
 
@@ -178,7 +193,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def constructQuery(eventQuery: EventQuery): List[QueryDefinition] = {
     val tagNum = eventQuery.tags.size
-    val queries = constructTimeQuery(eventQuery.time) :: Nil
+    val queries = constructTimeQuery(eventQuery.timestamp) :: Nil
 
     if (tagNum == 0) queries
     else
@@ -190,10 +205,10 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
     timeRange match {
       case Some(tr) =>
-        val addLt: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.lt.isDefined) r to tr.lt.get.toDouble includeUpper false else r }
-        val addLte: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.lte.isDefined) r to tr.lte.get.toDouble includeUpper true else r }
-        val addGt: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gt.isDefined) r from tr.gt.get.toDouble includeLower false else r }
-        val addGte: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gte.isDefined) r from tr.gte.get.toDouble includeLower true else r }
+        val addLt: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.lt.isDefined) r to tr.lt.get includeUpper false else r }
+        val addLte: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.lte.isDefined) r to tr.lte.get includeUpper true else r }
+        val addGt: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gt.isDefined) r from tr.gt.get includeLower false else r }
+        val addGte: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gte.isDefined) r from tr.gte.get includeLower true else r }
 
         val r = (addLt andThen addLte andThen addGt andThen addGte)(range)
         r
@@ -226,6 +241,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
           .value()
 
         SingleValueAggregationResult(if (value.isNaN || value.isInfinite) 0D else value)
+    } recoverWith {
+      case e: Exception => error(EventQueryError)
     }
   }
 }
