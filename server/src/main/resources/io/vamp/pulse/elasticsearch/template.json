@@ -1,0 +1,30 @@
+{
+  "template": "$NAME-*",
+  "order": 1,
+  "settings": {
+    "number_of_shards": 5
+  },
+  "mappings": {
+    "_default_": {
+      "_all": {
+        "enabled": false
+      },
+      "properties": {
+        "tags": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "date",
+          "format": "YYYY-MM-dd'T'HH:mm:ss.SSSZ"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "aliases": {
+    "$NAME": {
+    }
+  }
+}
