@@ -1,11 +1,10 @@
-import _root_.sbt.Keys._
-
+import sbt.Keys._
 
 organization in ThisBuild := "io.vamp"
 
 name := """pulse"""
 
-version in ThisBuild := "0.7.6"
+version in ThisBuild := "0.7.6." + GitHelper.headSha()
 
 scalaVersion := "2.11.6"
 
@@ -45,24 +44,28 @@ pomExtra in ThisBuild := <url>http://vamp.io</url>
 
 //
 resolvers ++= Seq(
-  "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
-  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
-  "spray repo" at "http://repo.spray.io",
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+  Resolver.typesafeRepo("releases"),
   Resolver.jcenterRepo
+)
+
+lazy val bintraySetting = Seq(
+  bintrayOrganization := Some("magnetic-io"),
+  licenses +=("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+  bintrayRepository := "vamp"
 )
 
 // Shared dependencies
 
-val vampCommonV = "0.7.6"
-val json4sV = "3.2.11"
+val vampCommonVersion = "0.7.6"
+val json4sVersion = "3.2.11"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test","io.vamp" %% "common" % vampCommonV,
-  "org.json4s" %% "json4s-core" % json4sV,
-  "org.json4s" %% "json4s-ext" % json4sV,
-  "org.json4s" %% "json4s-native" % json4sV
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
+  "io.vamp" %% "common" % vampCommonVersion,
+  "org.json4s" %% "json4s-core" % json4sVersion,
+  "org.json4s" %% "json4s-ext" % json4sVersion,
+  "org.json4s" %% "json4s-native" % json4sVersion
 )
 
 // Force scala version for the dependencies
@@ -72,7 +75,7 @@ dependencyOverrides in ThisBuild ++= Set(
 )
 
 // Root project and subproject definitions
-lazy val root = project.in(file(".")).settings(
+lazy val root = project.in(file(".")).settings(bintraySetting: _*).settings(
   // Disable publishing root empty pom
   packagedArtifacts in file(".") := Map.empty,
   // allows running main classes from subprojects
@@ -92,7 +95,9 @@ val scalaLoggingVersion = "3.1.0"
 val slf4jVersion = "1.7.10"
 val logbackVersion = "1.1.2"
 
-lazy val server = project.settings(
+lazy val server = project.settings(bintraySetting: _*).settings(
+  description := "Server for Vamp Pulse",
+  name:="pulse-server",
   libraryDependencies ++=Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
@@ -111,31 +116,28 @@ lazy val server = project.settings(
     "io.spray" %% "spray-can" % sprayVersion,
     "com.github.nscala-time" %% "nscala-time" % "1.8.0",
     "com.sksamuel.elastic4s" %% "elastic4s" % "1.5.4",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonVersion,
     "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
     "org.slf4j" % "slf4j-api" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "org.scalatest" %% "scalatest" % "2.2.5" % "test"
-  )
+  ),
+  // Runnable assembly jar lives in server/target/scala_2.11/ and is renamed to pulse assembly for consistent filename for
+  // downloading
+  assemblyJarName in assembly := s"pulse-assembly-${version.value}.jar"
 ).dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
 
-lazy val model = project.disablePlugins(sbtassembly.AssemblyPlugin)
+lazy val model = project.settings(bintraySetting: _*).settings(
+  description := "Model for Vamp Pulse",
+  name:="pulse-model"
+).disablePlugins(sbtassembly.AssemblyPlugin)
 
-lazy val client = project.dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
+lazy val client = project.settings(bintraySetting: _*).settings(
+  description := "Client for Vamp Pulse",
+  name:="pulse-client"
+).dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
 
 scalacOptions in ThisBuild ++= Seq(Opts.compile.deprecation, Opts.compile.unchecked) ++
   Seq("-target:jvm-1.8", "-Ywarn-unused-import", "-Ywarn-unused", "-Xlint", "-feature")
 
 javacOptions ++= Seq("-encoding", "UTF-8")
-
-
-bintrayPublishSettings
-
-bintray.Keys.repository in bintray.Keys.bintray := "vamp"
-
-licenses  += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
-
-bintray.Keys.bintrayOrganization in bintray.Keys.bintray := Some("magnetic-io")
-
 
