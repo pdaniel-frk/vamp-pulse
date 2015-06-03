@@ -1,29 +1,24 @@
 package io.vamp.pulse.old.storage.engine.dao
 
-import com.sksamuel.elastic4s.ElasticClient
-import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.FutureSupport
-import io.vamp.pulse.eventstream.EventDecoder
-import io.vamp.pulse.http.PulseSerializationFormat
-import org.elasticsearch.node.Node
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
 import scala.language.postfixOps
 
 class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll with FutureSupport {
 
-  implicit val formats = PulseSerializationFormat.api
-
-  val config = ConfigFactory.load()
-
-  val esConf = config.getConfig("storage.es")
-  //val serverWrapper = new ElasticSearchLocalServer(esConf.getString("cluster.name"), true, true)
-  var server: Node = _
-
-  implicit var esClient: ElasticClient = _
-  //lazy val dao = new ElasticSearchEventDAO
-
-  val decoder = new EventDecoder()
+//  implicit val formats = PulseSerializationFormat.api
+  //
+  //  val config = ConfigFactory.load()
+  //
+  //  val esConf = config.getConfig("storage.es")
+  //  //val serverWrapper = new ElasticSearchLocalServer(esConf.getString("cluster.name"), true, true)
+  //  var server: Node = _
+  //
+  //  implicit var esClient: ElasticClient = _
+  //  //lazy val dao = new ElasticSearchEventDAO
+  //
+  //  val decoder = new EventDecoder()
 
 
   //  override protected def beforeAll() = {
