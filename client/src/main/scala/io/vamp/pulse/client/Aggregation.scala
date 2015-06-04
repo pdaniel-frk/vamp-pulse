@@ -5,35 +5,24 @@ import java.time.OffsetDateTime
 import io.vamp.pulse.model._
 
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 trait Aggregation {
   this: PulseClient =>
 
-  def count(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime, includeLower: Boolean, includeUpper: Boolean): Future[SingleValueAggregationResult] =
-    count(tags, Some(from), Some(to), includeLower, includeUpper)
+  def count(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[LongValueAggregationResult] =
+    aggregate[LongValueAggregationResult](tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.count), field))
 
-  def count(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[SingleValueAggregationResult] =
-    aggregate(tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.count), field))
+  def max(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[DoubleValueAggregationResult] =
+    aggregate[DoubleValueAggregationResult](tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.max), field))
 
-  def max(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime, includeLower: Boolean, includeUpper: Boolean): Future[SingleValueAggregationResult] =
-    max(tags, Some(from), Some(to), includeLower, includeUpper)
+  def min(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[DoubleValueAggregationResult] =
+    aggregate[DoubleValueAggregationResult](tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.min), field))
 
-  def max(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[SingleValueAggregationResult] =
-    aggregate(tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.max), field))
+  def average(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[DoubleValueAggregationResult] =
+    aggregate[DoubleValueAggregationResult](tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.average), field))
 
-  def min(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime, includeLower: Boolean, includeUpper: Boolean): Future[SingleValueAggregationResult] =
-    min(tags, Some(from), Some(to), includeLower, includeUpper)
-
-  def min(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[SingleValueAggregationResult] =
-    aggregate(tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.min), field))
-
-  def average(tags: Set[String], from: OffsetDateTime, to: OffsetDateTime, includeLower: Boolean, includeUpper: Boolean): Future[SingleValueAggregationResult] =
-    average(tags, Some(from), Some(to), includeLower, includeUpper)
-
-  def average(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[SingleValueAggregationResult] =
-    aggregate(tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.average), field))
-
-  def aggregate(tags: Set[String], from: Option[OffsetDateTime], to: Option[OffsetDateTime], includeLower: Boolean, includeUpper: Boolean, aggregator: Aggregator): Future[SingleValueAggregationResult] =
-    eventQuery[SingleValueAggregationResult](EventQuery(tags, Some(TimeRange.from(from, to, includeLower, includeUpper)), Some(aggregator)))
+  def aggregate[V <: AggregationResult : ClassTag](tags: Set[String], from: Option[OffsetDateTime], to: Option[OffsetDateTime], includeLower: Boolean, includeUpper: Boolean, aggregator: Aggregator)(implicit m: Manifest[V]): Future[V] =
+    eventQuery[V](EventQuery(tags, Some(TimeRange.from(from, to, includeLower, includeUpper)), Some(aggregator)))
 }
 

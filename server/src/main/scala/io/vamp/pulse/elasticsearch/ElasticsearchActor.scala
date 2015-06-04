@@ -143,10 +143,20 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def indexEvent(indexName: String, typeName: String, event: Event) = {
+    def expandTags: (Set[String] => Set[String]) = { (tags: Set[String]) =>
+      tags.flatMap { tag =>
+        tag.indexOf(':') match {
+          case -1 => tag :: Nil
+          case index => tag.substring(0, index) :: tag :: Nil
+        }
+      }
+    }
+
     // TODO fix this time conversion properly
     // work around to have YYYY-MM-dd'T'HH:mm:ss.SSSZ
-    val updated = event.copy(timestamp = if (event.timestamp.getNano == 0) event.timestamp.plusNanos(1000000) else event.timestamp)
-    index into(indexName, typeName) doc updated
+    val timestamp = if (event.timestamp.getNano == 0) event.timestamp.plusNanos(1000000) else event.timestamp
+
+    index into(indexName, typeName) doc event.copy(tags = expandTags(event.tags), timestamp = timestamp)
   }
 
   private def indexTypeName(event: Event): (String, String) = {
@@ -188,7 +198,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def countEvents(eventQuery: EventQuery) = {
     searchEvents(eventQuery, 0) map {
-      response => SingleValueAggregationResult(response.getHits.totalHits())
+      response => LongValueAggregationResult(response.getHits.totalHits())
     }
   }
 
@@ -248,7 +258,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
           .getAggregations.get("val_agg").asInstanceOf[InternalNumericMetricsAggregation.SingleValue]
           .value()
 
-        SingleValueAggregationResult(if (value.isNaN || value.isInfinite) 0D else value)
+        DoubleValueAggregationResult(if (value.isNaN || value.isInfinite) 0D else value)
     } recoverWith {
       case e: Exception => error(EventQueryError)
     }

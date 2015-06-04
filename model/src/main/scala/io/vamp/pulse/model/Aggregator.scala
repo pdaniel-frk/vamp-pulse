@@ -15,4 +15,10 @@ case class Aggregator(`type`: Option[AggregatorType], field: Option[String] = No
 
 trait AggregationResult
 
-case class SingleValueAggregationResult(value: AnyVal) extends AggregationResult
+trait SingleValueAggregationResult[T <: Any] extends AggregationResult {
+  def value: T
+}
+
+case class LongValueAggregationResult(value: Long) extends SingleValueAggregationResult[Long]
+
+case class DoubleValueAggregationResult(value: Double) extends SingleValueAggregationResult[Double]
