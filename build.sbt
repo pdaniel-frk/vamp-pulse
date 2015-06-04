@@ -122,7 +122,11 @@ lazy val server = project.settings(bintraySetting: _*).settings(
   ),
   // Runnable assembly jar lives in server/target/scala_2.11/ and is renamed to pulse assembly for consistent filename for
   // downloading
-  assemblyJarName in assembly := s"pulse-assembly-${version.value}.jar"
+  assemblyJarName in assembly := s"pulse-assembly-${version.value}.jar",
+  assemblyExcludedJars in assembly := {
+    val cp = (fullClasspath in assembly).value
+    cp filter {_.data.getName == "joda-convert-1.6.jar"}
+  }
 ).dependsOn(model, client)
 
 lazy val model = project.settings(bintraySetting: _*).settings(
@@ -139,4 +143,5 @@ scalacOptions in ThisBuild ++= Seq(Opts.compile.deprecation, Opts.compile.unchec
   Seq("-target:jvm-1.8", "-Ywarn-unused-import", "-Ywarn-unused", "-Xlint", "-feature")
 
 javacOptions ++= Seq("-encoding", "UTF-8")
+
 
