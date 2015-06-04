@@ -10,16 +10,17 @@ trait PulseTagResolverProvider extends DefaultTagResolverProvider {
   override def resolveTags(notification: Notification): List[String] = List("pulse") ++ super.resolveTags(notification)
 }
 
-class PulseNotificationActor(url: String) extends AbstractPulseNotificationActor(url) with PulseTagResolverProvider with DefaultNotificationEventFormatter {
-
-}
-
 trait PulseActorLoggingNotificationProvider extends ActorLoggingNotificationProvider with DefaultPackageMessageResolverProvider {
   this: AbstractLoggingActor with MessageResolverProvider =>
 }
 
 object PulseNotificationActor {
+
   private val config = ConfigFactory.load()
 
   def props(): Props = Props(new PulseNotificationActor(s"${config.getString("vamp.pulse.rest-api.host")}:${config.getString("vamp.pulse.rest-api.port")}"))
 }
+
+class PulseNotificationActor(url: String) extends AbstractPulseNotificationActor(url) with PulseTagResolverProvider with DefaultNotificationEventFormatter {
+}
+

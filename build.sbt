@@ -56,12 +56,11 @@ lazy val bintraySetting = Seq(
 
 // Shared dependencies
 
-val vampCommonVersion = "0.7.6.40"
 val json4sVersion = "3.2.11"
+val vampCommonVersion = "0.7.6.42"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
   "io.vamp" %% "common" % vampCommonVersion,
   "org.json4s" %% "json4s-core" % json4sVersion,
   "org.json4s" %% "json4s-ext" % json4sVersion,
@@ -114,17 +113,17 @@ lazy val server = project.settings(bintraySetting: _*).settings(
     "io.spray" %% "spray-io" % sprayVersion,
     "io.spray" %% "spray-routing" % sprayVersion,
     "io.spray" %% "spray-can" % sprayVersion,
-    "com.github.nscala-time" %% "nscala-time" % "1.8.0",
     "com.sksamuel.elastic4s" %% "elastic4s" % "1.5.4",
     "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
     "org.slf4j" % "slf4j-api" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "org.scalatest" %% "scalatest" % "2.2.5" % "test"
+    "org.scalatest" %% "scalatest" % "2.2.5" % "test",
+    "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test"
   ),
   // Runnable assembly jar lives in server/target/scala_2.11/ and is renamed to pulse assembly for consistent filename for
   // downloading
   assemblyJarName in assembly := s"pulse-assembly-${version.value}.jar"
-).dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
+).dependsOn(model, client).disablePlugins(sbtassembly.AssemblyPlugin)
 
 lazy val model = project.settings(bintraySetting: _*).settings(
   description := "Model for Vamp Pulse",

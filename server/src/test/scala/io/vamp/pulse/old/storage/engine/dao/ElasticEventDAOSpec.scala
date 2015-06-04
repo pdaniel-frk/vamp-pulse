@@ -3,8 +3,6 @@ package io.vamp.pulse.old.storage.engine.dao
 import io.vamp.common.akka.FutureSupport
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
-import scala.language.postfixOps
-
 class ElasticEventDAOSpec extends FlatSpec with Matchers with BeforeAndAfterAll with FutureSupport {
 
 //  implicit val formats = PulseSerializationFormat.api
