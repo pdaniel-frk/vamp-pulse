@@ -1,15 +1,19 @@
 package io.vamp.pulse.eventstream
 
 import akka.actor._
+import io.vamp.common.akka.{ActorDescription, CommonActorSupport}
+import io.vamp.pulse.notification.PulseNotificationProvider
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+object SSESupervisionActor extends ActorDescription {
+  def props(args: Any*): Props = Props(classOf[SSESupervisionActor], args: _*)
+}
 
-class SSESupervisionActor(streamUrl: String, producerRef: ActorRef) extends Actor with ActorLogging {
+class SSESupervisionActor(streamUrl: String) extends CommonActorSupport with PulseNotificationProvider {
 
-  protected val child = context.actorOf(SSEConnectionActor.props(streamUrl, producerRef))
+  protected val child = actorOf(SSEConnectionActor, streamUrl)
 
   protected var ticker: Option[Cancellable] = Option.empty
 
@@ -30,6 +34,3 @@ class SSESupervisionActor(streamUrl: String, producerRef: ActorRef) extends Acto
   }
 }
 
-object SSESupervisionActor {
-  def props(streamUrl: String, producerRef: ActorRef): Props = Props(new SSESupervisionActor(streamUrl, producerRef))
-}

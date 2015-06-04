@@ -2,8 +2,10 @@ package io.vamp.pulse.eventstream.driver
 
 import java.util.{Properties, UUID}
 
+import com.typesafe.scalalogging.Logger
 import kafka.message._
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
+import org.slf4j.LoggerFactory
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -77,6 +79,8 @@ case class KafkaProducer(
                             */
                           ) {
 
+  private val logger = Logger(LoggerFactory.getLogger(classOf[KafkaProducer]))
+
   val props = new Properties()
 
   val codec = if(compress) DefaultCompressionCodec.codec else NoCompressionCodec.codec
@@ -91,7 +95,7 @@ case class KafkaProducer(
 
   val producer = new Producer[AnyRef, AnyRef](new ProducerConfig(props))
 
-  def kafkaMesssage(message: Array[Byte], partition: Array[Byte]): KeyedMessage[AnyRef, AnyRef] = {
+  def kafkaMessage(message: Array[Byte], partition: Array[Byte]): KeyedMessage[AnyRef, AnyRef] = {
     if (partition == null) {
       new KeyedMessage(topic,message)
     } else {
@@ -103,10 +107,10 @@ case class KafkaProducer(
 
   def send(message: Array[Byte], partition: Array[Byte]): Unit = {
     try {
-      producer.send(kafkaMesssage(message, partition))
+      producer.send(kafkaMessage(message, partition))
     } catch {
       case e: Exception =>
-        e.printStackTrace
+        logger.error(e.getMessage, e)
         System.exit(1)
     }
   }

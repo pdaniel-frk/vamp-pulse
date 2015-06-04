@@ -52,6 +52,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   implicit val timeout = ElasticsearchActor.timeout
 
   private val indexConfiguration = configuration.getConfig("elasticsearch.index")
+  private val timeFormatConfiguration = indexConfiguration.getConfig("time-format")
 
   private val defaultIndex = indexConfiguration.getString("name")
 
@@ -117,8 +118,10 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   private def insertEvent(event: Event) = {
     if (event.tags.isEmpty) error(EmptyEventError)
 
+    val (indexName, typeName) = indexTypeName(event)
+
     elasticsearch.client.execute {
-      insertQuery(event)
+      indexEvent(indexName, typeName, event)
     } map { response =>
       if (!response.isCreated) error(EventIndexError) else response
     } recoverWith {
@@ -131,21 +134,27 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   private def insertEvent(eventList: Seq[Event]) = {
     elasticsearch.client.execute {
       bulk(
-        eventList.filter(_.tags.nonEmpty).map(event => insertQuery(event))
+        eventList.filter(_.tags.nonEmpty).map { event =>
+          val (indexName, typeName) = indexTypeName(event)
+          indexEvent(indexName, typeName, event)
+        }
       )
     }
   }
 
-  private def insertQuery(event: Event): IndexDefinition = {
+  private def indexEvent(indexName: String, typeName: String, event: Event) = {
+    // TODO fix this time conversion properly
+    // work around to have YYYY-MM-dd'T'HH:mm:ss.SSSZ
+    val updated = event.copy(timestamp = if (event.timestamp.getNano == 0) event.timestamp.plusNanos(1000000) else event.timestamp)
+    index into(indexName, typeName) doc updated
+  }
+
+  private def indexTypeName(event: Event): (String, String) = {
     val schema = event.`type`
+    val format = timeFormatConfiguration.getString(if (timeFormatConfiguration.hasPath(schema)) schema else "event")
+    val time = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format))
 
-    val time = {
-      val path = s"time-format.$schema"
-      val format = indexConfiguration.getString(if (indexConfiguration.hasPath(path)) path else "event")
-      OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format))
-    }
-
-    index into(s"$defaultIndex-$schema-$time", schema) doc event
+    s"$defaultIndex-$schema-$time" -> schema
   }
 
   private def queryEvents(eventQuery: EventQuery): Future[_] = {
@@ -168,7 +177,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   private def getEvents(eventQuery: EventQuery, eventLimit: Int = 30) = {
     searchEvents(eventQuery, eventLimit) map {
       response =>
-        implicit val formats = PulseSerializationFormat.elasticsearch
+        implicit val formats = PulseSerializationFormat.default
         response.getHits.hits().map { hit =>
           parse(hit.sourceAsString()).extract[Event]
         } toList
@@ -210,8 +219,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
         val addGt: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gt.isDefined) r from tr.gt.get includeLower false else r }
         val addGte: (RangeQueryDefinition) => RangeQueryDefinition = { r => if (tr.gte.isDefined) r from tr.gte.get includeLower true else r }
 
-        val r = (addLt andThen addLte andThen addGt andThen addGte)(range)
-        r
+        (addLt andThen addLte andThen addGt andThen addGte)(range)
       case _ => range
     }
   }

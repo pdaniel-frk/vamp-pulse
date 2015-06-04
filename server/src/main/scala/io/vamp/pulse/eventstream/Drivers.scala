@@ -3,8 +3,11 @@ package io.vamp.pulse.eventstream
 import akka.actor.{ActorRef, ActorSystem}
 import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
+import io.vamp.common.akka.ActorSupport
 import io.vamp.pulse.model.Event
 import kafka.serializer.DefaultDecoder
+import org.slf4j.LoggerFactory
 
 trait Driver {
 
@@ -20,7 +23,8 @@ object SseDriver extends Driver {
   private var sseActorRef: ActorRef = _
 
   override def start(ref: ActorRef, system: ActorSystem): Unit = {
-    sseActorRef = system.actorOf(SSESupervisionActor.props(config.getString("url"), ref))
+    implicit val actorSystem = system
+    sseActorRef = ActorSupport.actorOf(SSESupervisionActor, config.getString("url"))
     sseActorRef ! OpenConnection
   }
 
@@ -30,6 +34,8 @@ object SseDriver extends Driver {
 }
 
 object KafkaDriver extends Driver {
+
+  private val logger = Logger(LoggerFactory.getLogger(KafkaDriver.getClass))
 
   private val config = ConfigFactory.load().getConfig("vamp.pulse.event-stream.kafka")
 
@@ -53,7 +59,7 @@ object KafkaDriver extends Driver {
   override def stop(): Unit = {
     consumer match {
       case Some(cons) => cons.stop()
-      case None => println("Nothing to stop")
+      case None => logger.info("Nothing to stop")
     }
   }
 }

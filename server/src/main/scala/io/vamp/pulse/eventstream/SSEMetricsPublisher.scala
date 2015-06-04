@@ -2,7 +2,9 @@ package io.vamp.pulse.eventstream
 
 import akka.actor.Props
 import akka.stream.actor.ActorPublisher
+import com.typesafe.scalalogging.Logger
 import io.vamp.pulse.model.Event
+import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
 
@@ -26,12 +28,14 @@ class SSEMetricsPublisher extends ActorPublisher[Event] {
 
   import akka.stream.actor.ActorPublisherMessage._
 
+  private val logger = Logger(LoggerFactory.getLogger(classOf[SSEMetricsPublisher]))
+
   val maxBufSize = 10000
   var buf = Vector.empty[Event]
 
   override def receive: Receive = {
     case event: Event if buf.size == maxBufSize =>
-      println(s"Rejected a message due to buffer overflow: $event")
+      logger.warn(s"Rejected a message due to buffer overflow: $event")
     case event: Event =>
       if (buf.isEmpty && totalDemand > 0)
         onNext(event)

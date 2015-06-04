@@ -18,7 +18,7 @@ trait RestApiRoute extends RestApiBase with InfoRoute with Json4sSupport with Co
 
   implicit def timeout: Timeout
 
-  override implicit def json4sFormats: Formats = PulseSerializationFormat.elasticsearch
+  override implicit def json4sFormats: Formats = PulseSerializationFormat.default
 
   val route = noCachingAllowed {
     allowXhrFromOtherHosts {
