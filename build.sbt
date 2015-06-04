@@ -123,7 +123,7 @@ lazy val server = project.settings(bintraySetting: _*).settings(
   // Runnable assembly jar lives in server/target/scala_2.11/ and is renamed to pulse assembly for consistent filename for
   // downloading
   assemblyJarName in assembly := s"pulse-assembly-${version.value}.jar"
-).dependsOn(model, client).disablePlugins(sbtassembly.AssemblyPlugin)
+).dependsOn(model, client)
 
 lazy val model = project.settings(bintraySetting: _*).settings(
   description := "Model for Vamp Pulse",
