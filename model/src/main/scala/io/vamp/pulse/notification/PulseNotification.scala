@@ -6,15 +6,14 @@ import io.vamp.common.notification._
 import io.vamp.pulse.model.Event
 
 
-//
-//
-//trait PulseEvent {
-//  def tags: List[String] = Nil
-//
-//  def schema: String = ""
-//
-//  def value: AnyRef = this
-//}
+trait PulseEvent {
+  def tags: Set[String] = Set()
+
+  def `type`: Option[String] = None
+
+  def value: AnyRef
+}
+
 //object DefaultPulseNotificationActor extends ActorDescription {
 //
 //  def props(args: Any*): Props = Props[DefaultPulseNotificationActor]

@@ -6,18 +6,20 @@ import io.vamp.pulse.notification.{PulseNotificationProvider, UnableToDecodeErro
 import kafka.serializer.{Decoder, StringDecoder}
 import kafka.utils.VerifiableProperties
 import org.json4s._
-import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.read
 
 
 class EventDecoder(props: VerifiableProperties = null) extends Decoder[Event] with PulseNotificationProvider {
-  implicit val formats = PulseSerializationFormat.api
-  val stringDecoder = new StringDecoder(props)
+
+  implicit val formats = PulseSerializationFormat.default
+
+  private val stringDecoder = new StringDecoder(props)
 
   override def fromBytes(bytes: Array[Byte]): Event = fromString(stringDecoder.fromBytes(bytes))
 
   def fromString(string: String): Event = {
     try
-      parse(string).extract[Event]
+      read[Event](string)
     catch {
       case ex: MappingException => error(UnableToDecodeError(ex))
     }

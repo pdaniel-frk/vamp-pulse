@@ -3,12 +3,15 @@ package io.vamp.pulse.eventstream
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{AbstractLoggingActor, ActorRef, Props}
+import com.typesafe.scalalogging.Logger
+import io.vamp.common.akka.{ActorDescription, CommonActorSupport}
 import io.vamp.pulse.configuration.TimeoutConfigurationProvider
+import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.notification._
 import org.glassfish.jersey.client.{ClientConfig, ClientProperties, JerseyClientBuilder}
 import org.glassfish.jersey.media.sse.{EventListener, EventSource, InboundEvent}
+import org.slf4j.LoggerFactory
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.blocking
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -20,7 +23,14 @@ case object CloseConnection
 
 case object OpenConnection
 
-class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends AbstractLoggingActor with PulseActorLoggingNotificationProvider with TimeoutConfigurationProvider {
+
+object SSEConnectionActor extends ActorDescription {
+  def props(args: Any*): Props = Props(classOf[SSEConnectionActor], args: _*)
+}
+
+class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with CommonActorSupport with PulseActorLoggingNotificationProvider with TimeoutConfigurationProvider {
+
+  private val logger = Logger(LoggerFactory.getLogger(classOf[SSEConnectionActor]))
 
   override protected val notificationActor: ActorRef = context.actorOf(PulseNotificationActor.props())
 
@@ -36,9 +46,12 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
   }
 
   val listener = new EventListener {
-    override def onEvent(inboundEvent: InboundEvent): Unit = inboundEvent.getName match {
-      case "metric" => producerRef ! decoder.fromString(inboundEvent.readData(classOf[String]))
-      case _ => println(s"Received event ${inboundEvent.getName}, ignoring")
+    override def onEvent(inboundEvent: InboundEvent): Unit = {
+      try {
+        actorFor(ElasticsearchActor) ! ElasticsearchActor.Index(decoder.fromString(inboundEvent.readData(classOf[String])))
+      } catch {
+        case e: Exception => logger.error(e.getMessage, e)
+      }
     }
   }
 
@@ -96,8 +109,4 @@ class SSEConnectionActor(streamUrl: String, producerRef: ActorRef) extends Abstr
 
       if (isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)
   }
-}
-
-object SSEConnectionActor {
-  def props(streamUrl: String, producerRef: ActorRef): Props = Props(new SSEConnectionActor(streamUrl, producerRef))
 }

@@ -7,7 +7,7 @@ import org.json4s.native.Serialization._
 import scala.language.implicitConversions
 
 class CustomObjectSource(any: AnyRef) extends DocumentSource {
-  implicit val formats = PulseSerializationFormat.elasticsearch
+  implicit val formats = PulseSerializationFormat.default
 
   override def json: String = write(any)
 }
