@@ -1,10 +1,9 @@
 package io.vamp.pulse.elasticsearch
 
 import akka.actor.{FSM, _}
-import io.vamp.common.akka.Bootstrap.Start
 import io.vamp.common.akka._
 import io.vamp.common.http.RestClient
-import io.vamp.pulse.elasticsearch.ElasticsearchInitializationActor.{DoneWithOne, WaitForOne}
+import io.vamp.pulse.elasticsearch.ElasticsearchInitializationActor.{DoneWithOne, Initialize, WaitForOne}
 import io.vamp.pulse.notification._
 
 import scala.io.Source
@@ -16,6 +15,8 @@ object ElasticsearchInitializationActor extends ActorDescription {
   def props(args: Any*): Props = Props[ElasticsearchInitializationActor]
 
   sealed trait InitializationEvent
+
+  object Initialize extends InitializationEvent
 
   object WaitForOne extends InitializationEvent
 
@@ -43,9 +44,12 @@ class ElasticsearchInitializationActor extends FSM[State, Int] with CommonActorS
   startWith(Idle, 0)
 
   when(Idle) {
-    case Event(Start, 0) =>
+    case Event(Initialize, 0) =>
+      log.info(s"Starting with Elasticsearch initialization.")
       initializeTemplates()
       goto(Active) using 1
+
+    case Event(_, _) => stay()
   }
 
   when(Active, stateTimeout = timeout.duration) {

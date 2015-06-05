@@ -91,6 +91,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def start() = {
     elasticsearch.start()
+    actorFor(ElasticsearchInitializationActor) ! ElasticsearchInitializationActor.Initialize
   }
 
   private def shutdown() = {
@@ -149,7 +150,8 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def indexTypeName(event: Event): (String, String) = {
     val schema = event.`type`
-    val time = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(indexTimeFormat.getOrElse(schema, "event")))
+    val format = indexTimeFormat.getOrElse(schema, indexTimeFormat.getOrElse("event", "YYYY-MM-dd"))
+    val time = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format))
 
     s"$defaultIndexName-$schema-$time" -> schema
   }
