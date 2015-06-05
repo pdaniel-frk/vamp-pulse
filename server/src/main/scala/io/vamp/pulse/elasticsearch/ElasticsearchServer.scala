@@ -12,7 +12,7 @@ class ElasticsearchServer(configuration: Config) {
 
   private val logger = Logger(LoggerFactory.getLogger(classOf[ElasticsearchServer]))
 
-  private lazy val node: Option[Node] = if (configuration.getString("type").toLowerCase == "embedded") {
+  private lazy val embeddedNode: Option[Node] = if (configuration.getString("type").toLowerCase == "embedded") {
     Some(nodeBuilder().settings(ImmutableSettings.settingsBuilder()
       .put("transport.tcp.port", configuration.getInt("tcp-port"))
       .put("path.data", configuration.getString("data-directory"))
@@ -21,14 +21,17 @@ class ElasticsearchServer(configuration: Config) {
       .build).build)
   } else None
 
-  def start(): Unit = node.foreach { n =>
-    logger.info("Starting embedded Elasticsearch server.")
-    n.start()
+  def start(): Unit = embeddedNode match {
+    case Some(node) =>
+      logger.info("Starting embedded Elasticsearch server.")
+      node.start()
+    case None =>
+      logger.info("Remote non-embedded Elasticsearch server will be used.")
   }
 
-  def shutdown(): Unit = node.foreach { n =>
+  def shutdown(): Unit = embeddedNode.foreach { node =>
     logger.info("Shutting down embedded Elasticsearch server.")
-    n.close()
+    node.close()
   }
 
   lazy val client = {

@@ -15,4 +15,5 @@ NoEventStreamDriver      : "No event stream driver found for: {driver}."
 MappingErrorNotification : "Unable to save the object because it does not correspond to it's schema: '{schema}'."
 
 # Elasticsearch
-AggregatorNotSupported   : "Aggreagator not supported."
+AggregatorNotSupported                  : "Aggreagator not supported."
+ElasticsearchInitializationTimeoutError$: "Elasticsearch initialization timeout."

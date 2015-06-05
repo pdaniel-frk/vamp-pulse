@@ -24,3 +24,5 @@ case class ConnectionSuccessful(url: String) extends Notification
 case class NoEventStreamDriver(driver: String) extends Notification
 
 case class AggregatorNotSupported() extends Notification
+
+object ElasticsearchInitializationTimeoutError extends Notification

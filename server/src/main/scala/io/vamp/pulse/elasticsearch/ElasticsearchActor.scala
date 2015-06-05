@@ -26,7 +26,6 @@ import scala.collection.JavaConverters._
 import scala.collection.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.io.Source
 import scala.language.postfixOps
 
 object ElasticsearchActor extends ActorDescription {
@@ -35,7 +34,13 @@ object ElasticsearchActor extends ActorDescription {
 
   val timeout = Timeout(configuration.getInt("response-timeout") seconds)
 
+  val defaultIndexName = configuration.getString("index.name-prefix")
+
+  val restApiUrl = configuration.getString("rest-api-url")
+
   def props(args: Any*): Props = Props[ElasticsearchActor]
+
+  object StartIndexing
 
   case class Index(event: Event)
 
@@ -52,23 +57,25 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   implicit val timeout = ElasticsearchActor.timeout
 
-  private val defaultIndexName = configuration.getString("index.name-prefix")
-
   private val indexTimeFormat: Map[String, String] = configuration.getConfig("index.time-format").entrySet.asScala.map { entry =>
     entry.getKey -> entry.getValue.unwrapped.toString
   } toMap
 
   private lazy val elasticsearch = new ElasticsearchServer(configuration)
 
-  private val restApiUrl = configuration.getString("rest-api-url")
+  private var indexingAllowed = false
 
   def receive: Receive = {
 
     case InfoRequest => info()
 
-    case BatchIndex(events) => replyWith(insertEvent(events) map { _ => events })
+    case StartIndexing =>
+      indexingAllowed = true
+      log.info(s"Starting with indexing.")
 
-    case Index(event) => replyWith(insertEvent(event) map { _ => event })
+    case Index(event) => if (indexingAllowed) replyWith(insertEvent(event) map { _ => event })
+
+    case BatchIndex(events) => if (indexingAllowed) replyWith(insertEvent(events) map { _ => events })
 
     case Search(query) => replyWith(queryEvents(query))
 
@@ -84,24 +91,6 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def start() = {
     elasticsearch.start()
-
-    updateTemplates()
-  }
-
-  private def updateTemplates() = {
-    def update(name: String) = {
-      elasticsearch.client.execute {
-        get template s"$defaultIndexName-$name"
-      } map { response =>
-        if (response.getIndexTemplates.isEmpty) {
-          val template = Source.fromInputStream(getClass.getResourceAsStream(s"$name.json")).mkString.replace("$NAME", defaultIndexName)
-          RestClient.request[Any](s"PUT $restApiUrl/_template/$defaultIndexName-$name", template)
-        }
-      }
-    }
-
-    update("template")
-    update("template-event")
   }
 
   private def shutdown() = {
