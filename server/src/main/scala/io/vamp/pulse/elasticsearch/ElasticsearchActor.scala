@@ -141,7 +141,11 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
       }
     }
 
-    index into(indexName, typeName) doc event.copy(tags = expandTags(event.tags))
+    // TODO fix this time conversion properly
+    // work around to have YYYY-MM-dd'T'HH:mm:ss.SSSZ
+    val timestamp = if (event.timestamp.getNano == 0) event.timestamp.plusNanos(1000000) else event.timestamp
+
+    index into(indexName, typeName) doc event.copy(tags = expandTags(event.tags), timestamp = timestamp)
   }
 
   private def indexTypeName(event: Event): (String, String) = {
