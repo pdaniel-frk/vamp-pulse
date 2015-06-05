@@ -22,6 +22,7 @@ import org.elasticsearch.search.sort.SortOrder
 import org.elasticsearch.transport.RemoteTransportException
 import org.json4s.native.JsonMethods._
 
+import scala.collection.JavaConverters._
 import scala.collection.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -30,9 +31,9 @@ import scala.language.postfixOps
 
 object ElasticsearchActor extends ActorDescription {
 
-  val configuration = ConfigFactory.load().getConfig("vamp.pulse")
+  val configuration = ConfigFactory.load().getConfig("vamp.pulse.elasticsearch")
 
-  val timeout = Timeout(configuration.getInt("elasticsearch.response-timeout") seconds)
+  val timeout = Timeout(configuration.getInt("response-timeout") seconds)
 
   def props(args: Any*): Props = Props[ElasticsearchActor]
 
@@ -51,14 +52,15 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   implicit val timeout = ElasticsearchActor.timeout
 
-  private val indexConfiguration = configuration.getConfig("elasticsearch.index")
-  private val timeFormatConfiguration = indexConfiguration.getConfig("time-format")
+  private val defaultIndexName = configuration.getString("index.name-prefix")
 
-  private val defaultIndex = indexConfiguration.getString("name")
+  private val indexTimeFormat: Map[String, String] = configuration.getConfig("index.time-format").entrySet.asScala.map { entry =>
+    entry.getKey -> entry.getValue.unwrapped.toString
+  } toMap
 
-  private lazy val elasticsearch = new ElasticsearchServer(configuration.getConfig("elasticsearch"))
+  private lazy val elasticsearch = new ElasticsearchServer(configuration)
 
-  private val restApiUrl = configuration.getString("elasticsearch.rest-api-url")
+  private val restApiUrl = configuration.getString("rest-api-url")
 
   def receive: Receive = {
 
@@ -89,11 +91,11 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   private def updateTemplates() = {
     def update(name: String) = {
       elasticsearch.client.execute {
-        get template s"$defaultIndex-$name"
+        get template s"$defaultIndexName-$name"
       } map { response =>
         if (response.getIndexTemplates.isEmpty) {
-          val template = Source.fromInputStream(getClass.getResourceAsStream(s"$name.json")).mkString.replace("$NAME", defaultIndex)
-          RestClient.request[Any](s"PUT $restApiUrl/_template/$defaultIndex-$name", template)
+          val template = Source.fromInputStream(getClass.getResourceAsStream(s"$name.json")).mkString.replace("$NAME", defaultIndexName)
+          RestClient.request[Any](s"PUT $restApiUrl/_template/$defaultIndexName-$name", template)
         }
       }
     }
@@ -158,10 +160,9 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def indexTypeName(event: Event): (String, String) = {
     val schema = event.`type`
-    val format = timeFormatConfiguration.getString(if (timeFormatConfiguration.hasPath(schema)) schema else "event")
-    val time = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format))
+    val time = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(indexTimeFormat.getOrElse(schema, "event")))
 
-    s"$defaultIndex-$schema-$time" -> schema
+    s"$defaultIndexName-$schema-$time" -> schema
   }
 
   private def queryEvents(eventQuery: EventQuery): Future[_] = {
@@ -201,7 +202,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def searchEvents(eventQuery: EventQuery, eventLimit: Int) = {
     elasticsearch.client.execute {
-      search in defaultIndex query {
+      search in defaultIndexName query {
         must(constructQuery(eventQuery))
       } sort (by field "timestamp" order SortOrder.DESC) start 0 limit eventLimit
     }
@@ -236,7 +237,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
     val aggregationField = List("value", aggregator.field.getOrElse("")).filter(p => !p.isEmpty).mkString(".")
 
     elasticsearch.client.execute {
-      search in defaultIndex searchType SearchType.Count aggs {
+      search in defaultIndexName searchType SearchType.Count aggs {
         aggregation filter "filter_agg" filter {
           queryFilter(must(constructQuery(eventQuery)))
         } aggs {
