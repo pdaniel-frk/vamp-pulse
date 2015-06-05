@@ -56,12 +56,9 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private val defaultIndex = indexConfiguration.getString("name")
 
-  private lazy val elasticsearch = if (configuration.getString("elasticsearch.type").toLowerCase == "embedded")
-    new EmbeddedElasticsearchServer(configuration.getConfig("elasticsearch.embedded"))
-  else
-    new RemoteElasticsearchServer(configuration.getConfig("elasticsearch.remote"))
+  private lazy val elasticsearch = new ElasticsearchServer(configuration.getConfig("elasticsearch"))
 
-  private val url = configuration.getString("elasticsearch.url")
+  private val restApiUrl = configuration.getString("elasticsearch.rest-api-url")
 
   def receive: Receive = {
 
@@ -80,7 +77,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def info() = {
     val receiver = sender()
-    RestClient.request[Any](s"GET $url").map(response => receiver ! response)
+    RestClient.request[Any](s"GET $restApiUrl").map(response => receiver ! response)
   }
 
   private def start() = {
@@ -96,7 +93,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
       } map { response =>
         if (response.getIndexTemplates.isEmpty) {
           val template = Source.fromInputStream(getClass.getResourceAsStream(s"$name.json")).mkString.replace("$NAME", defaultIndex)
-          RestClient.request[Any](s"PUT $url/_template/$defaultIndex-$name", template)
+          RestClient.request[Any](s"PUT $restApiUrl/_template/$defaultIndex-$name", template)
         }
       }
     }
