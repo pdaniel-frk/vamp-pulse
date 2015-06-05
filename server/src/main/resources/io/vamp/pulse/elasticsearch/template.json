@@ -11,14 +11,16 @@
       },
       "properties": {
         "tags": {
-          "type": "string"
+          "type": "string",
+          "index": "not_analyzed"
         },
         "timestamp": {
           "type": "date",
           "format": "YYYY-MM-dd'T'HH:mm:ss.SSSZ"
         },
         "type": {
-          "type": "string"
+          "type": "string",
+          "index" : "not_analyzed"
         }
       }
     }
