@@ -15,7 +15,7 @@ class ElasticsearchServer(configuration: Config) {
   private lazy val embeddedNode: Option[Node] = if (configuration.getString("type").toLowerCase == "embedded") {
     Some(nodeBuilder().settings(ImmutableSettings.settingsBuilder()
       .put("transport.tcp.port", configuration.getInt("tcp-port"))
-      .put("path.data", configuration.getString("data-directory"))
+      .put("path.data", configuration.getString("embedded.data-directory"))
       .put("cluster.name", configuration.getString("cluster-name"))
       .put("http.enabled", true).put("node.local", false)
       .build).build)
