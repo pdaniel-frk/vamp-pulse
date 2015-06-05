@@ -32,7 +32,7 @@ class PulseClient(val url: String)(implicit executionContext: ExecutionContext) 
 trait PulseClientProvider {
   this: ExecutionContextProvider =>
 
-  protected val pulseUrl: String
+  protected def pulseUrl: String
 
-  val pulseClient = new PulseClient(pulseUrl)
+  lazy val pulseClient = new PulseClient(pulseUrl)
 }
