@@ -95,7 +95,9 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def shutdown() = {
-    elasticsearch.shutdown()
+    RestClient.request[Any](s"POST $restApiUrl/$defaultIndexName-*/_flush").map {
+      response => elasticsearch.shutdown()
+    }
   }
 
   private def replyWith(callback: => Future[_]): Unit = try {
