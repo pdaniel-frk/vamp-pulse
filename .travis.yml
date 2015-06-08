@@ -13,7 +13,7 @@ after_success:
 - test ${TRAVIS_PULL_REQUEST} == "false" &&
   test ${TRAVIS_BRANCH} == "develop" &&
   sh "$TRAVIS_BUILD_DIR/.travis-ci-bintray-credentials.sh" &&
-  sbt 'set version := version.value + "." + System.getenv("TRAVIS_BUILD_NUMBER")' publish
+  sbt publish
 branches:
   only:
     - master
