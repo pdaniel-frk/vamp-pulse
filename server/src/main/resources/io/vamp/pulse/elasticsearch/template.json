@@ -16,7 +16,7 @@
         },
         "timestamp": {
           "type": "date",
-          "format": "YYYY-MM-dd'T'HH:mm:ss.SSSZ"
+          "format": "date_optional_time"
         },
         "type": {
           "type": "string",
