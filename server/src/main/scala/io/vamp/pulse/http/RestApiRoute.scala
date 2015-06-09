@@ -12,7 +12,6 @@ import org.json4s.Formats
 import spray.http.HttpHeaders.{Link, RawHeader}
 import spray.http.MediaTypes._
 import spray.http.StatusCodes.{Created, OK}
-import spray.http.Uri.Query
 import spray.http.{StatusCode, Uri}
 import spray.httpx.Json4sSupport
 import spray.routing.Route
@@ -31,7 +30,7 @@ trait RestApiRoute extends RestApiBase with InfoRoute with Json4sSupport with Co
 
     def links(uri: Uri, envelope: OffsetResponseEnvelope[_]) = {
 
-      def link(page: Long, param: Link.Param) = Link.Value(uri.copy(fragment = None, query = Query(("page", s"$page"), ("per_page", s"${envelope.perPage}"))), param)
+      def link(page: Long, param: Link.Param) = Link.Value(uri.copy(fragment = None, query = ("per_page" -> s"${envelope.perPage}") +: ("page" -> s"$page") +: uri.query), param)
       def first = link(1, Link.first)
       def last = link(envelope.total / envelope.perPage + 1, Link.last)
       def previous = link(if (envelope.page > 1) envelope.page - 1 else 1, Link.prev)
