@@ -32,7 +32,7 @@ case object Active extends State
 
 case object Done extends State
 
-class ElasticsearchInitializationActor extends FSM[State, Int] with CommonActorSupport with PulseNotificationProvider {
+class ElasticsearchInitializationActor extends FSM[State, Int] with CommonSupportForActors with PulseNotificationProvider {
 
   import ElasticsearchActor._
 

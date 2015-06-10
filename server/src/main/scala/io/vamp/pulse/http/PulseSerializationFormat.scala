@@ -6,6 +6,7 @@ import org.json4s._
 import org.json4s.ext.EnumNameSerializer
 
 object PulseSerializationFormat {
+
   val http: Formats = SerializationFormat(OffsetDateTimeSerializer, SnakeCaseSerializationFormat, MapSerializer, new EnumNameSerializer(Aggregator))
 
   val default: Formats = SerializationFormat(OffsetDateTimeSerializer, new EnumNameSerializer(Aggregator))

@@ -57,7 +57,7 @@ lazy val bintraySetting = Seq(
 // Shared dependencies
 
 val json4sVersion = "3.2.11"
-val vampCommonVersion = "0.7.7.2de1df2"
+val vampCommonVersion = "0.7.7.e387560"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
@@ -93,6 +93,7 @@ val jacksonVersion = "2.5.0"
 val scalaLoggingVersion = "3.1.0"
 val slf4jVersion = "1.7.10"
 val logbackVersion = "1.1.2"
+val junitVersion = "4.11"
 
 lazy val server = project.settings(bintraySetting: _*).settings(
   description := "Server for Vamp Pulse",
@@ -118,7 +119,8 @@ lazy val server = project.settings(bintraySetting: _*).settings(
     "org.slf4j" % "slf4j-api" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "org.scalatest" %% "scalatest" % "2.2.5" % "test",
-    "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test"
+    "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
+    "io.spray" %% "spray-testkit" % sprayVersion % "test"
   ),
   // Runnable assembly jar lives in server/target/scala_2.11/ and is renamed to pulse assembly for consistent filename for
   // downloading

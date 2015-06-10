@@ -56,7 +56,7 @@ object ElasticsearchActor extends ActorDescription {
 
 }
 
-class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvider {
+class ElasticsearchActor extends CommonSupportForActors with PulseNotificationProvider {
 
   import CustomObjectSource._
   import ElasticsearchActor._

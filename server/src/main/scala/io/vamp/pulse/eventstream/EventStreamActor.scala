@@ -5,7 +5,7 @@ import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl.{PropsSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
-import io.vamp.common.akka.{ActorDescription, CommonActorSupport}
+import io.vamp.common.akka.{ActorDescription, CommonSupportForActors}
 import io.vamp.common.vitals.InfoRequest
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.model.Event
@@ -18,7 +18,7 @@ object EventStreamActor extends ActorDescription {
   def props(args: Any*): Props = Props[EventStreamActor]
 }
 
-class EventStreamActor extends CommonActorSupport with PulseNotificationProvider {
+class EventStreamActor extends CommonSupportForActors with PulseNotificationProvider {
 
   private val configuration = ConfigFactory.load().getConfig("vamp.pulse.event-stream")
 

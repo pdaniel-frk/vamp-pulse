@@ -2,7 +2,7 @@ package io.vamp.pulse.http
 
 import akka.pattern.ask
 import akka.util.Timeout
-import io.vamp.common.akka.CommonActorSupport
+import io.vamp.common.akka.ActorSupport
 import io.vamp.common.http.RestApiBase
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.elasticsearch.ElasticsearchActor.EventRequestEnvelope
@@ -18,7 +18,8 @@ import spray.routing.Route
 
 import scala.language.{existentials, postfixOps}
 
-trait RestApiRoute extends RestApiBase with InfoRoute with Json4sSupport with CommonActorSupport with PulseNotificationProvider {
+trait RestApiRoute extends RestApiBase with InfoRoute with Json4sSupport with PulseNotificationProvider {
+  this: ActorSupport =>
 
   implicit def timeout: Timeout
 
