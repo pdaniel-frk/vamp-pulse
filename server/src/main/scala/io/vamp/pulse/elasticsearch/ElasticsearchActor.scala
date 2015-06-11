@@ -10,9 +10,9 @@ import com.sksamuel.elastic4s._
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
-import io.vamp.common.http.RestClient
+import io.vamp.common.http.{OffsetResponseEnvelope, OffsetRequestEnvelope, RestClient}
 import io.vamp.common.vitals.InfoRequest
-import io.vamp.pulse.http.{OffsetRequestEnvelope, OffsetResponseEnvelope, PulseSerializationFormat}
+import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model._
 import io.vamp.pulse.notification._
 import org.elasticsearch.index.mapper.MapperParsingException
@@ -181,7 +181,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
 
   private def getEvents(envelope: EventRequestEnvelope) = {
     val page = if (envelope.page < 1) 1 else envelope.page
-    val perPage = if (envelope.perPage < 1) 1 else envelope.perPage
+    val perPage = if (envelope.perPage < 1) 1 else if (envelope.perPage > 100) 100 else envelope.perPage
 
     searchEvents(envelope.request, (page - 1) * perPage, perPage) map {
       response =>
