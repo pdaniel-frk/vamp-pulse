@@ -57,7 +57,7 @@ lazy val bintraySetting = Seq(
 // Shared dependencies
 
 val json4sVersion = "3.2.11"
-val vampCommonVersion = "0.7.7.721d78e"
+val vampCommonVersion = "0.7.7.9a3ac76"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
