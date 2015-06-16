@@ -119,7 +119,7 @@ lazy val server = project.settings(bintraySetting: _*).settings(
     "org.slf4j" % "slf4j-api" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "org.scalatest" %% "scalatest" % "2.2.5" % "test",
-    "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test",
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
     "io.spray" %% "spray-testkit" % sprayVersion % "test"
   ),
   // Runnable assembly jar lives in server/target/scala_2.11/ and is renamed to pulse assembly for consistent filename for
