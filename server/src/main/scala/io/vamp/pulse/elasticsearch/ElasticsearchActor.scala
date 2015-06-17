@@ -140,16 +140,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
   }
 
   private def indexEvent(indexName: String, typeName: String, event: Event) = {
-    def expandTags: (Set[String] => Set[String]) = { (tags: Set[String]) =>
-      tags.flatMap { tag =>
-        tag.indexOf(':') match {
-          case -1 => tag :: Nil
-          case index => tag.substring(0, index) :: tag :: Nil
-        }
-      }
-    }
-
-    index into(indexName, typeName) doc event.copy(tags = expandTags(event.tags))
+    index into(indexName, typeName) doc Event.expandTags(event)
   }
 
   private def indexTypeName(event: Event): (String, String) = {
