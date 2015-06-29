@@ -113,17 +113,17 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
   }
 
   private def insertEvent(event: Event) = {
-    if (event.tags.isEmpty) error(EmptyEventError)
+    if (event.tags.isEmpty) throwException(EmptyEventError)
 
     val (indexName, typeName) = indexTypeName(event)
 
     elasticsearch.client.execute {
       indexEvent(indexName, typeName, event)
     } map { response =>
-      if (!response.isCreated) error(EventIndexError) else response
+      if (!response.isCreated) throwException(EventIndexError) else response
     } recoverWith {
       case e: RemoteTransportException => e.getCause match {
-        case t: MapperParsingException => error(MappingErrorNotification(e.getCause, event.`type`))
+        case t: MapperParsingException => throwException(MappingErrorNotification(e.getCause, event.`type`))
       }
     }
   }
@@ -155,7 +155,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
     val eventQuery = envelope.request
 
     eventQuery.timestamp.foreach { time =>
-      if ((time.lt.isDefined && time.lte.isDefined) || (time.gt.isDefined && time.gte.isDefined)) error(EventQueryTimeError)
+      if ((time.lt.isDefined && time.lte.isDefined) || (time.gt.isDefined && time.gte.isDefined)) throwException(EventQueryTimeError)
     }
 
     try {
@@ -166,7 +166,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
       }
     }
     catch {
-      case e: Exception => error(EventQueryError)
+      case e: Exception => throwException(EventQueryError)
     }
   }
 
@@ -180,7 +180,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
           parse(hit.sourceAsString()).extract[Event]
         } toList, response.getHits.totalHits, page, perPage)
     } recoverWith {
-      case e: Exception => error(EventQueryError)
+      case e: Exception => throwException(EventQueryError)
     }
   }
 
@@ -235,7 +235,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
             case Some(Aggregator.`average`) => aggregation avg "val_agg" field aggregationField
             case Some(Aggregator.`min`) => aggregation min "val_agg" field aggregationField
             case Some(Aggregator.`max`) => aggregation max "val_agg" field aggregationField
-            case _ => error(AggregatorNotSupported())
+            case _ => throwException(AggregatorNotSupported())
           }
         }
       }
@@ -248,7 +248,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
 
         DoubleValueAggregationResult(if (value.isNaN || value.isInfinite) 0D else value)
     } recoverWith {
-      case e: Exception => error(EventQueryError)
+      case e: Exception => throwException(EventQueryError)
     }
   }
 }

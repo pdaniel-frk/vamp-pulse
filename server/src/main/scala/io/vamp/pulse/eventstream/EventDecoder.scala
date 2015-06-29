@@ -21,7 +21,7 @@ class EventDecoder(props: VerifiableProperties = null) extends Decoder[Event] wi
     try
       read[Event](string)
     catch {
-      case ex: MappingException => error(UnableToDecodeError(ex))
+      case ex: MappingException => throwException(UnableToDecodeError(ex))
     }
   }
 }

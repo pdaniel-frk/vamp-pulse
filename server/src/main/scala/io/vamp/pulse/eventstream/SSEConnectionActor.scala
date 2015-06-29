@@ -95,7 +95,7 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
             eventSource.get.close()
             eventSource = Option.empty
           }
-          exception(UnableToConnectError(streamUrl))
+          reportException(UnableToConnectError(streamUrl))
 
         case Success(resp) if resp.getHeaderString("X-Vamp-Stream") != null =>
           if (eventSource.isEmpty && isOpen) {
@@ -104,7 +104,7 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
             log.info(message(ConnectionSuccessful(streamUrl)))
           }
 
-        case _ => exception(NotStreamError(streamUrl))
+        case _ => reportException(NotStreamError(streamUrl))
       }
 
       if (isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)

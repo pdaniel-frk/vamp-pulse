@@ -58,7 +58,7 @@ class ElasticsearchInitializationActor extends FSM[State, Int] with CommonSuppor
     case Event(DoneWithOne, count) => if (count > 1) stay() using count - 1 else done()
 
     case Event(StateTimeout, _) =>
-      exception(ElasticsearchInitializationTimeoutError)
+      reportException(ElasticsearchInitializationTimeoutError)
       done()
   }
 
