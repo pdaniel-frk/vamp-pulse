@@ -92,7 +92,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
 
   private def info() = {
     val receiver = sender()
-    RestClient.request[Any](s"GET $restApiUrl").map(response => receiver ! response)
+    RestClient.get[Any](s"$restApiUrl").map(response => receiver ! response)
   }
 
   private def start() = {
@@ -101,7 +101,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
   }
 
   private def shutdown() = {
-    RestClient.request[Any](s"POST $restApiUrl/$defaultIndexName-*/_flush").map {
+    RestClient.post[Any](s"$restApiUrl/$defaultIndexName-*/_flush", "").map {
       response => elasticsearch.shutdown()
     }
   }
