@@ -4,7 +4,7 @@ organization in ThisBuild := "io.vamp"
 
 name := """pulse"""
 
-version in ThisBuild := "0.7.7."  + GitHelper.headSha()
+version in ThisBuild := "0.7.8" // + "." + GitHelper.headSha()
 
 scalaVersion := "2.11.6"
 
@@ -57,7 +57,7 @@ lazy val bintraySetting = Seq(
 // Shared dependencies
 
 val json4sVersion = "3.2.11"
-val vampCommonVersion = "0.7.7.c3f680a"
+val vampCommonVersion = "0.7.8"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
