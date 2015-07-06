@@ -4,7 +4,7 @@ organization in ThisBuild := "io.vamp"
 
 name := """pulse"""
 
-version in ThisBuild := "0.7.7"
+version in ThisBuild := "0.7.8" //+ "." + GitHelper.headSha()
 
 scalaVersion := "2.11.6"
 
@@ -57,7 +57,7 @@ lazy val bintraySetting = Seq(
 // Shared dependencies
 
 val json4sVersion = "3.2.11"
-val vampCommonVersion = "0.7.7"
+val vampCommonVersion = "0.7.8"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
@@ -93,6 +93,7 @@ val jacksonVersion = "2.5.0"
 val scalaLoggingVersion = "3.1.0"
 val slf4jVersion = "1.7.10"
 val logbackVersion = "1.1.2"
+val junitVersion = "4.11"
 
 lazy val server = project.settings(bintraySetting: _*).settings(
   description := "Server for Vamp Pulse",
@@ -118,7 +119,8 @@ lazy val server = project.settings(bintraySetting: _*).settings(
     "org.slf4j" % "slf4j-api" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "org.scalatest" %% "scalatest" % "2.2.5" % "test",
-    "com.typesafe.akka" %% "akka-testkit" % "2.3.9" % "test"
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
+    "io.spray" %% "spray-testkit" % sprayVersion % "test"
   ),
   // Runnable assembly jar lives in server/target/scala_2.11/ and is renamed to pulse assembly for consistent filename for
   // downloading
@@ -143,5 +145,3 @@ scalacOptions in ThisBuild ++= Seq(Opts.compile.deprecation, Opts.compile.unchec
   Seq("-target:jvm-1.8", "-Ywarn-unused-import", "-Ywarn-unused", "-Xlint", "-feature")
 
 javacOptions ++= Seq("-encoding", "UTF-8")
-
-
