@@ -32,7 +32,7 @@ case object Active extends State
 
 case object Done extends State
 
-class ElasticsearchInitializationActor extends FSM[State, Int] with CommonActorSupport with PulseNotificationProvider {
+class ElasticsearchInitializationActor extends FSM[State, Int] with CommonSupportForActors with PulseNotificationProvider {
 
   import ElasticsearchActor._
 
@@ -58,7 +58,7 @@ class ElasticsearchInitializationActor extends FSM[State, Int] with CommonActorS
     case Event(DoneWithOne, count) => if (count > 1) stay() using count - 1 else done()
 
     case Event(StateTimeout, _) =>
-      exception(ElasticsearchInitializationTimeoutError)
+      reportException(ElasticsearchInitializationTimeoutError)
       done()
   }
 
@@ -78,12 +78,12 @@ class ElasticsearchInitializationActor extends FSM[State, Int] with CommonActorS
 
     def createTemplate(name: String) = templates.get(name).foreach { template =>
       receiver ! WaitForOne
-      RestClient.request[Any](s"PUT $restApiUrl/_template/$name", template) onComplete {
+      RestClient.put[Any](s"$restApiUrl/_template/$name", template) onComplete {
         case _ => receiver ! DoneWithOne
       }
     }
 
-    RestClient.request[Any](s"GET $restApiUrl/_template", None, "", { case field => field }) onComplete {
+    RestClient.get[Any](s"$restApiUrl/_template") onComplete {
       case Success(response) =>
         response match {
           case map: Map[_, _] => templates.keys.filterNot(name => map.asInstanceOf[Map[String, Any]].contains(name)).foreach(createTemplate)

@@ -10,7 +10,7 @@ import com.sksamuel.elastic4s._
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
 import io.vamp.common.akka._
-import io.vamp.common.http.RestClient
+import io.vamp.common.http.{OffsetEnvelope, OffsetRequestEnvelope, OffsetResponseEnvelope, RestClient}
 import io.vamp.common.vitals.InfoRequest
 import io.vamp.pulse.http.PulseSerializationFormat
 import io.vamp.pulse.model._
@@ -40,17 +40,23 @@ object ElasticsearchActor extends ActorDescription {
 
   def props(args: Any*): Props = Props[ElasticsearchActor]
 
+
+  case class EventRequestEnvelope(request: EventQuery, page: Int, perPage: Int) extends OffsetRequestEnvelope[EventQuery]
+
+  case class EventResponseEnvelope(response: List[Event], total: Long, page: Int, perPage: Int) extends OffsetResponseEnvelope[Event]
+
+
   object StartIndexing
 
   case class Index(event: Event)
 
   case class BatchIndex(events: Seq[Event])
 
-  case class Search(query: EventQuery)
+  case class Search(query: EventRequestEnvelope)
 
 }
 
-class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvider {
+class ElasticsearchActor extends CommonSupportForActors with PulseNotificationProvider {
 
   import CustomObjectSource._
   import ElasticsearchActor._
@@ -86,7 +92,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
   private def info() = {
     val receiver = sender()
-    RestClient.request[Any](s"GET $restApiUrl").map(response => receiver ! response)
+    RestClient.get[Any](s"$restApiUrl").map(response => receiver ! response)
   }
 
   private def start() = {
@@ -95,7 +101,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def shutdown() = {
-    RestClient.request[Any](s"POST $restApiUrl/$defaultIndexName-*/_flush").map {
+    RestClient.post[Any](s"$restApiUrl/$defaultIndexName-*/_flush", "").map {
       response => elasticsearch.shutdown()
     }
   }
@@ -107,17 +113,17 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def insertEvent(event: Event) = {
-    if (event.tags.isEmpty) error(EmptyEventError)
+    if (event.tags.isEmpty) throwException(EmptyEventError)
 
     val (indexName, typeName) = indexTypeName(event)
 
     elasticsearch.client.execute {
       indexEvent(indexName, typeName, event)
     } map { response =>
-      if (!response.isCreated) error(EventIndexError) else response
+      if (!response.isCreated) throwException(EventIndexError) else response
     } recoverWith {
       case e: RemoteTransportException => e.getCause match {
-        case t: MapperParsingException => error(MappingErrorNotification(e.getCause, event.`type`))
+        case t: MapperParsingException => throwException(MappingErrorNotification(e.getCause, event.`type`))
       }
     }
   }
@@ -134,20 +140,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
   }
 
   private def indexEvent(indexName: String, typeName: String, event: Event) = {
-    def expandTags: (Set[String] => Set[String]) = { (tags: Set[String]) =>
-      tags.flatMap { tag =>
-        tag.indexOf(':') match {
-          case -1 => tag :: Nil
-          case index => tag.substring(0, index) :: tag :: Nil
-        }
-      }
-    }
-
-    // TODO fix this time conversion properly
-    // work around to have YYYY-MM-dd'T'HH:mm:ss.SSSZ
-    val timestamp = if (event.timestamp.getNano == 0) event.timestamp.plusNanos(1000000) else event.timestamp
-
-    index into(indexName, typeName) doc event.copy(tags = expandTags(event.tags), timestamp = timestamp)
+    index into(indexName, typeName) doc Event.expandTags(event)
   }
 
   private def indexTypeName(event: Event): (String, String) = {
@@ -158,46 +151,50 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
     s"$defaultIndexName-$schema-$time" -> schema
   }
 
-  private def queryEvents(eventQuery: EventQuery): Future[_] = {
+  private def queryEvents(envelope: EventRequestEnvelope): Future[_] = {
+    val eventQuery = envelope.request
+
     eventQuery.timestamp.foreach { time =>
-      if ((time.lt.isDefined && time.lte.isDefined) || (time.gt.isDefined && time.gte.isDefined)) error(EventQueryTimeError)
+      if ((time.lt.isDefined && time.lte.isDefined) || (time.gt.isDefined && time.gte.isDefined)) throwException(EventQueryTimeError)
     }
 
     try {
       eventQuery.aggregator match {
-        case None => getEvents(eventQuery)
+        case None => getEvents(envelope)
         case Some(Aggregator(Some(Aggregator.`count`), _)) => countEvents(eventQuery)
         case Some(aggregator) => aggregateEvents(eventQuery)
       }
     }
     catch {
-      case e: Exception => error(EventQueryError)
+      case e: Exception => throwException(EventQueryError)
     }
   }
 
-  private def getEvents(eventQuery: EventQuery, eventLimit: Int = 30) = {
-    searchEvents(eventQuery, eventLimit) map {
+  private def getEvents(envelope: EventRequestEnvelope) = {
+    val (page, perPage) = OffsetEnvelope.normalize(envelope.page, envelope.perPage, 30)
+
+    searchEvents(envelope.request, (page - 1) * perPage, perPage) map {
       response =>
         implicit val formats = PulseSerializationFormat.default
-        response.getHits.hits().map { hit =>
+        EventResponseEnvelope(response.getHits.hits().map { hit =>
           parse(hit.sourceAsString()).extract[Event]
-        } toList
+        } toList, response.getHits.totalHits, page, perPage)
     } recoverWith {
-      case e: Exception => error(EventQueryError)
+      case e: Exception => throwException(EventQueryError)
     }
   }
 
   private def countEvents(eventQuery: EventQuery) = {
-    searchEvents(eventQuery, 0) map {
+    searchEvents(eventQuery, 0, 0) map {
       response => LongValueAggregationResult(response.getHits.totalHits())
     }
   }
 
-  private def searchEvents(eventQuery: EventQuery, eventLimit: Int) = {
+  private def searchEvents(eventQuery: EventQuery, eventOffset: Int, eventLimit: Int) = {
     elasticsearch.client.execute {
       search in defaultIndexName query {
         must(constructQuery(eventQuery))
-      } sort (by field "timestamp" order SortOrder.DESC) start 0 limit eventLimit
+      } sort (by field "timestamp" order SortOrder.DESC) start eventOffset limit eventLimit
     }
   }
 
@@ -238,7 +235,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
             case Some(Aggregator.`average`) => aggregation avg "val_agg" field aggregationField
             case Some(Aggregator.`min`) => aggregation min "val_agg" field aggregationField
             case Some(Aggregator.`max`) => aggregation max "val_agg" field aggregationField
-            case _ => error(AggregatorNotSupported())
+            case _ => throwException(AggregatorNotSupported())
           }
         }
       }
@@ -251,7 +248,7 @@ class ElasticsearchActor extends CommonActorSupport with PulseNotificationProvid
 
         DoubleValueAggregationResult(if (value.isNaN || value.isInfinite) 0D else value)
     } recoverWith {
-      case e: Exception => error(EventQueryError)
+      case e: Exception => throwException(EventQueryError)
     }
   }
 }

@@ -8,7 +8,7 @@ import io.vamp.pulse.http.RestApiBootstrap
 
 import scala.language.{implicitConversions, postfixOps}
 
-object VampPulse extends App {
+trait VampPulse extends App {
 
   implicit val actorSystem = ActorSystem("vamp-pulse")
 

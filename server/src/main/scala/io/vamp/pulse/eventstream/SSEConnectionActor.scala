@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.{AbstractLoggingActor, ActorRef, Props}
 import com.typesafe.scalalogging.Logger
-import io.vamp.common.akka.{ActorDescription, CommonActorSupport}
+import io.vamp.common.akka.{ActorDescription, CommonSupportForActors}
 import io.vamp.pulse.configuration.TimeoutConfigurationProvider
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.notification._
@@ -28,7 +28,7 @@ object SSEConnectionActor extends ActorDescription {
   def props(args: Any*): Props = Props(classOf[SSEConnectionActor], args: _*)
 }
 
-class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with CommonActorSupport with PulseActorLoggingNotificationProvider with TimeoutConfigurationProvider {
+class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with CommonSupportForActors with PulseActorLoggingNotificationProvider with TimeoutConfigurationProvider {
 
   private val logger = Logger(LoggerFactory.getLogger(classOf[SSEConnectionActor]))
 
@@ -95,7 +95,7 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
             eventSource.get.close()
             eventSource = Option.empty
           }
-          exception(UnableToConnectError(streamUrl))
+          reportException(UnableToConnectError(streamUrl))
 
         case Success(resp) if resp.getHeaderString("X-Vamp-Stream") != null =>
           if (eventSource.isEmpty && isOpen) {
@@ -104,7 +104,7 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
             log.info(message(ConnectionSuccessful(streamUrl)))
           }
 
-        case _ => exception(NotStreamError(streamUrl))
+        case _ => reportException(NotStreamError(streamUrl))
       }
 
       if (isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)
