@@ -6,6 +6,14 @@ jdk:
 sudo: false
 install:
 - sh "$TRAVIS_BUILD_DIR/.travis-ci-bintray-credentials.sh"
+cache:
+  directories:
+    - $HOME/.m2/repository
+    - $HOME/.sbt
+    - $HOME/.ivy2
+    - $HOME/.sbt/launchers/
+before_script:
+- curl -L -o $HOME/.sbt/launchers/0.13.8/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.8/sbt-launch.jar
 script:
 - sbt ++$TRAVIS_SCALA_VERSION -J-XX:ReservedCodeCacheSize=256M clean coverage test
 - find $HOME/.sbt -name "*.lock" | xargs rm
@@ -13,12 +21,7 @@ script:
 after_success:
 - sbt coveralls
 - test ${TRAVIS_PULL_REQUEST} == "false" &&
-  test ${TRAVIS_BRANCH} == "master" &&
   sbt publish
-branches:
-  only:
-    - master
-    - develop
 notifications:
   slack:
     secure: BQ/FjW3DTlKEQCtvWl2FjxtXPSkWBNEi8ZEjmJri1N9upa1HcWa+nctlIEsEmNHNXo2t8jup/knH+RMnaGG31sGwrwsWwtUXp6+NMzCyW8VzKnnotfARmBpkh4YVflfaHww15IwTfP8lzhsKJm/leposjFxgWOmdwgAeOK6G0mg=
