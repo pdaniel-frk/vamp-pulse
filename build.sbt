@@ -4,13 +4,13 @@ organization in ThisBuild := "io.vamp"
 
 name := """pulse"""
 
-version in ThisBuild := "0.7.8" //+ "." + GitHelper.headSha()
+version in ThisBuild := "0.7.9" + VersionHelper.versionSuffix
 
 scalaVersion := "2.11.6"
 
 scalaVersion in ThisBuild := scalaVersion.value
 
-publishMavenStyle := true
+publishMavenStyle := false
 
 // This has to be overridden for sub-modules to have different description
 description := """Pulse is an event consumption/retrieval/aggregation application"""
@@ -43,10 +43,15 @@ pomExtra in ThisBuild := <url>http://vamp.io</url>
   </scm>
 
 //
+resolvers += Resolver.url("magnetic-io ivy resolver", url("http://dl.bintray.com/magnetic-io/vamp"))(Resolver.ivyStylePatterns)
+
 resolvers ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.jcenterRepo
 )
+
+
+
 
 lazy val bintraySetting = Seq(
   bintrayOrganization := Some("magnetic-io"),
@@ -57,7 +62,7 @@ lazy val bintraySetting = Seq(
 // Shared dependencies
 
 val json4sVersion = "3.2.11"
-val vampCommonVersion = "0.7.8"
+val vampCommonVersion = "0.7.9"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
@@ -145,3 +150,5 @@ scalacOptions in ThisBuild ++= Seq(Opts.compile.deprecation, Opts.compile.unchec
   Seq("-target:jvm-1.8", "-Ywarn-unused-import", "-Ywarn-unused", "-Xlint", "-feature")
 
 javacOptions ++= Seq("-encoding", "UTF-8")
+
+
