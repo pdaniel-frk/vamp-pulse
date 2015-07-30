@@ -10,7 +10,7 @@ scalaVersion := "2.11.6"
 
 scalaVersion in ThisBuild := scalaVersion.value
 
-publishMavenStyle := false
+publishMavenStyle in ThisBuild := false
 
 // This has to be overridden for sub-modules to have different description
 description := """Pulse is an event consumption/retrieval/aggregation application"""
@@ -49,8 +49,6 @@ resolvers ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.jcenterRepo
 )
-
-
 
 
 lazy val bintraySetting = Seq(
