@@ -79,11 +79,11 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
       indexingAllowed = true
       log.info(s"Starting with indexing.")
 
-    case Index(event) => if (indexingAllowed) replyWith(insertEvent(event) map { _ => event })
+    case Index(event) => if (indexingAllowed) reply[AnyRef](insertEvent(event) map { _ => event })
 
-    case BatchIndex(events) => if (indexingAllowed) replyWith(insertEvent(events) map { _ => events })
+    case BatchIndex(events) => if (indexingAllowed) reply[AnyRef](insertEvent(events) map { _ => events })
 
-    case Search(query) => replyWith(queryEvents(query))
+    case Search(query) => reply[AnyRef](queryEvents(query))
 
     case Start => start()
 
@@ -104,12 +104,6 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
     RestClient.post[Any](s"$restApiUrl/$defaultIndexName-*/_flush", "").map {
       response => elasticsearch.shutdown()
     }
-  }
-
-  private def replyWith(callback: => Future[_]): Unit = try {
-    sender ! offload(callback)
-  } catch {
-    case e: Exception => sender ! e
   }
 
   private def insertEvent(event: Event) = {
@@ -151,7 +145,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
     s"$defaultIndexName-$schema-$time" -> schema
   }
 
-  private def queryEvents(envelope: EventRequestEnvelope): Future[_] = {
+  private def queryEvents(envelope: EventRequestEnvelope): Future[AnyRef] = {
     val eventQuery = envelope.request
 
     eventQuery.timestamp.foreach { time =>

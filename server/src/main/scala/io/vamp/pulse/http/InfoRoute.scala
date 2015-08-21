@@ -7,8 +7,8 @@ import io.vamp.common.vitals.JvmVitals
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.eventstream.EventStreamActor
 
-import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.language.{existentials, postfixOps}
 
 case class InfoMessage(message: String, version: String, jvm: JvmVitals, elasticSearch: Any, stream: Any) extends InfoMessageBase
@@ -20,10 +20,10 @@ trait InfoRoute extends InfoBaseRoute {
 
   val componentInfoTimeout = Timeout(ConfigFactory.load().getInt("vamp.pulse.rest-api.info.timeout") seconds)
 
-  def info(jvm: JvmVitals): Future[InfoMessageBase] = info(Set(ElasticsearchActor, EventStreamActor)).map { result =>
+  def info: Future[InfoMessageBase] = retrieve(ElasticsearchActor :: EventStreamActor :: Nil).map { result =>
     InfoMessage(infoMessage,
       getClass.getPackage.getImplementationVersion,
-      jvm,
+      jvmVitals(),
       result.get(ElasticsearchActor),
       result.get(EventStreamActor)
     )

@@ -1,6 +1,6 @@
 package io.vamp.pulse.http
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorContext, ActorSystem, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
@@ -36,6 +36,10 @@ object HttpServerActor extends ActorDescription {
 }
 
 class HttpServerActor extends HttpServerBaseActor with RestApiRoute {
+
+  def actorContext: ActorContext = context
+
+  override def actorRefFactory = super[HttpServerBaseActor].actorRefFactory
 
   implicit val timeout = HttpServerActor.timeout
 

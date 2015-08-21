@@ -2,6 +2,7 @@ package io.vamp.pulse.http
 
 import java.util.concurrent.TimeUnit
 
+import akka.actor.ActorContext
 import akka.util.Timeout
 import io.vamp.common.akka.{ActorDescription, ActorRefFactoryExecutionContextProvider, ActorSupport}
 import org.json4s.Formats
@@ -17,7 +18,9 @@ class RestApiRouteSpec extends Specification with Specs2RouteTest with HttpServi
 
   args(skipAll = true)
 
-  def actorRefFactory = system
+
+
+  override def actorRefFactory = system
 
   val formats: Formats = PulseSerializationFormat.default
 
@@ -44,6 +47,8 @@ class RestApiRouteSpec extends Specification with Specs2RouteTest with HttpServi
       }
     }
   }
+
+  def actorContext: ActorContext = ???
 
   override def actorFor(actorDescription: ActorDescription) = ???
 }
