@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.language.{existentials, postfixOps}
 
-case class InfoMessage(message: String, jvm: JvmVitals, elasticSearch: Any, stream: Any) extends InfoMessageBase
+case class InfoMessage(message: String, version: String, jvm: JvmVitals, elasticSearch: Any, stream: Any) extends InfoMessageBase
 
 trait InfoRoute extends InfoBaseRoute {
   this: RestApiBase =>
@@ -22,6 +22,7 @@ trait InfoRoute extends InfoBaseRoute {
 
   def info(jvm: JvmVitals): Future[InfoMessageBase] = info(Set(ElasticsearchActor, EventStreamActor)).map { result =>
     InfoMessage(infoMessage,
+      getClass.getPackage.getImplementationVersion,
       jvm,
       result.get(ElasticsearchActor),
       result.get(EventStreamActor)
