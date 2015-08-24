@@ -2,6 +2,7 @@ package io.vamp.pulse.http
 
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
+import io.vamp.common.akka.ActorSystemProvider
 import io.vamp.common.http.{InfoBaseRoute, InfoMessageBase, RestApiBase}
 import io.vamp.common.vitals.JvmVitals
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
@@ -14,7 +15,7 @@ import scala.language.{existentials, postfixOps}
 case class InfoMessage(message: String, version: String, jvm: JvmVitals, elasticSearch: Any, stream: Any) extends InfoMessageBase
 
 trait InfoRoute extends InfoBaseRoute {
-  this: RestApiBase =>
+  this: RestApiBase with ActorSystemProvider =>
 
   val infoMessage = ConfigFactory.load().getString("vamp.pulse.rest-api.info.message")
 

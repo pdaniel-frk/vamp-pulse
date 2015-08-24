@@ -69,7 +69,7 @@ class ElasticsearchInitializationActor extends FSM[State, Int] with CommonSuppor
   initialize()
 
   def done() = {
-    actorFor(ElasticsearchActor) ! ElasticsearchActor.StartIndexing
+    IoC.actorFor(ElasticsearchActor) ! ElasticsearchActor.StartIndexing
     goto(Done) using 0
   }
 

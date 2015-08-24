@@ -2,9 +2,9 @@ package io.vamp.pulse.http
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorContext
+import akka.actor.ActorSystem
 import akka.util.Timeout
-import io.vamp.common.akka.{ActorDescription, ActorRefFactoryExecutionContextProvider, ActorSupport}
+import io.vamp.common.akka.{ActorRefFactoryExecutionContextProvider, ActorSystemProvider}
 import org.json4s.Formats
 import org.specs2.mutable.Specification
 import spray.http.HttpHeaders.Accept
@@ -14,11 +14,9 @@ import spray.testkit.Specs2RouteTest
 
 import scala.language.postfixOps
 
-class RestApiRouteSpec extends Specification with Specs2RouteTest with HttpService with RestApiRoute with ActorSupport with ActorRefFactoryExecutionContextProvider {
+class RestApiRouteSpec extends Specification with Specs2RouteTest with HttpService with ActorSystemProvider with RestApiRoute with ActorRefFactoryExecutionContextProvider {
 
   args(skipAll = true)
-
-
 
   override def actorRefFactory = system
 
@@ -48,7 +46,5 @@ class RestApiRouteSpec extends Specification with Specs2RouteTest with HttpServi
     }
   }
 
-  def actorContext: ActorContext = ???
-
-  override def actorFor(actorDescription: ActorDescription) = ???
+  def actorSystem: ActorSystem = ???
 }

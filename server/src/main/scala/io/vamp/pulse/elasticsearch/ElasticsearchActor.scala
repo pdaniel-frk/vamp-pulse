@@ -97,7 +97,7 @@ class ElasticsearchActor extends CommonSupportForActors with PulseNotificationPr
 
   private def start() = {
     elasticsearch.start()
-    actorFor(ElasticsearchInitializationActor) ! ElasticsearchInitializationActor.Initialize
+    IoC.actorFor(ElasticsearchInitializationActor) ! ElasticsearchInitializationActor.Initialize
   }
 
   private def shutdown() = {

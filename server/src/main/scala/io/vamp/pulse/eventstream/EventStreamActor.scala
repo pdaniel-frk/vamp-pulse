@@ -5,7 +5,7 @@ import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl.{PropsSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import io.vamp.common.akka.Bootstrap.{Shutdown, Start}
-import io.vamp.common.akka.{ActorDescription, CommonSupportForActors}
+import io.vamp.common.akka.{IoC, ActorDescription, CommonSupportForActors}
 import io.vamp.common.vitals.InfoRequest
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.model.Event
@@ -30,7 +30,7 @@ class EventStreamActor extends CommonSupportForActors with PulseNotificationProv
     case Start => (eventManagerSource, driver) match {
       case (Some(source), Some(d)) =>
         val materializedMap = source.groupedWithin(1000, 1 millis)
-          .map { events => actorFor(ElasticsearchActor) ! ElasticsearchActor.BatchIndex(events); events }
+          .map { events => IoC.actorFor(ElasticsearchActor) ! ElasticsearchActor.BatchIndex(events); events }
           .to(Sink.ignore).run()
 
         d.start(materializedMap.get(source), context.system)

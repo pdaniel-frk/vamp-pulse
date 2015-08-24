@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import io.vamp.common.akka.ActorSupport
+import io.vamp.common.akka.IoC
 import io.vamp.pulse.model.Event
 import kafka.serializer.DefaultDecoder
 import org.slf4j.LoggerFactory
@@ -24,7 +24,7 @@ object SseDriver extends Driver {
 
   override def start(ref: ActorRef, system: ActorSystem): Unit = {
     implicit val actorSystem = system
-    sseActorRef = ActorSupport.actorOf(SSESupervisionActor, config.getString("url"))
+    sseActorRef = IoC.createActor(SSESupervisionActor, config.getString("url"))
     sseActorRef ! OpenConnection
   }
 

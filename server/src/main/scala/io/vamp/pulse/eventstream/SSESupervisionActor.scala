@@ -1,7 +1,7 @@
 package io.vamp.pulse.eventstream
 
 import akka.actor._
-import io.vamp.common.akka.{ActorDescription, CommonSupportForActors}
+import io.vamp.common.akka.{IoC, ActorDescription, CommonSupportForActors}
 import io.vamp.pulse.notification.PulseNotificationProvider
 
 import scala.concurrent.duration._
@@ -13,7 +13,7 @@ object SSESupervisionActor extends ActorDescription {
 
 class SSESupervisionActor(streamUrl: String) extends CommonSupportForActors with PulseNotificationProvider {
 
-  protected val child = actorOf(SSEConnectionActor, streamUrl)
+  protected val child = IoC.createActor(SSEConnectionActor, streamUrl)
 
   protected var ticker: Option[Cancellable] = Option.empty
 

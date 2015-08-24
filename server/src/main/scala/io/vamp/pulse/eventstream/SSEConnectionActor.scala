@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.{AbstractLoggingActor, ActorRef, Props}
 import com.typesafe.scalalogging.Logger
-import io.vamp.common.akka.{ActorDescription, CommonSupportForActors}
+import io.vamp.common.akka.{IoC, ActorDescription, CommonSupportForActors}
 import io.vamp.pulse.configuration.TimeoutConfigurationProvider
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.notification._
@@ -48,7 +48,7 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
   val listener = new EventListener {
     override def onEvent(inboundEvent: InboundEvent): Unit = {
       try {
-        actorFor(ElasticsearchActor) ! ElasticsearchActor.Index(decoder.fromString(inboundEvent.readData(classOf[String])))
+        IoC.actorFor(ElasticsearchActor) ! ElasticsearchActor.Index(decoder.fromString(inboundEvent.readData(classOf[String])))
       } catch {
         case e: Exception => logger.error(e.getMessage, e)
       }
