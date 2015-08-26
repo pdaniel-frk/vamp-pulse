@@ -22,14 +22,14 @@ class ElasticsearchServer(configuration: Config) {
   } else None
 
   def start(): Unit = embeddedNode match {
-    case Some(node) =>
+    case Some(node) ⇒
       logger.info("Starting embedded Elasticsearch server.")
       node.start()
-    case None =>
+    case None ⇒
       logger.info("Remote non-embedded Elasticsearch server will be used.")
   }
 
-  def shutdown(): Unit = embeddedNode.foreach { node =>
+  def shutdown(): Unit = embeddedNode.foreach { node ⇒
     logger.info("Shutting down embedded Elasticsearch server.")
     node.close()
   }

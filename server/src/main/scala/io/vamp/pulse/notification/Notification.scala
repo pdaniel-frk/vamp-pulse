@@ -1,7 +1,6 @@
 package io.vamp.pulse.notification
 
-import io.vamp.common.notification.{ErrorNotification, Notification}
-
+import io.vamp.common.notification.{ ErrorNotification, Notification }
 
 object EmptyEventError extends Notification
 

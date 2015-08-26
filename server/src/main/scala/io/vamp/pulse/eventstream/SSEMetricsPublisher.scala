@@ -11,7 +11,6 @@ import scala.annotation.tailrec
 object SSEMetricsPublisher {
   def props: Props = Props[SSEMetricsPublisher]
 
-
   case object Accepted
 
   case object Rejected
@@ -34,17 +33,17 @@ class SSEMetricsPublisher extends ActorPublisher[Event] {
   var buf = Vector.empty[Event]
 
   override def receive: Receive = {
-    case event: Event if buf.size == maxBufSize =>
+    case event: Event if buf.size == maxBufSize ⇒
       logger.warn(s"Rejected a message due to buffer overflow: $event")
-    case event: Event =>
+    case event: Event ⇒
       if (buf.isEmpty && totalDemand > 0)
         onNext(event)
       else {
         buf :+= event
         deliverBuf()
       }
-    case Request(_) => deliverBuf()
-    case Cancel =>
+    case Request(_) ⇒ deliverBuf()
+    case Cancel ⇒
       context.stop(self)
   }
 

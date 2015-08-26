@@ -18,10 +18,10 @@ import spray.http.MediaTypes._
 
 import spray.httpx.Json4sSupport
 
-import scala.language.{existentials, postfixOps}
+import scala.language.{ existentials, postfixOps }
 
 trait RestApiRoute extends RestApiBase with InfoRoute with Json4sSupport with PulseNotificationProvider {
-  this: ActorSystemProvider =>
+  this: ActorSystemProvider ⇒
 
   implicit def timeout: Timeout
 

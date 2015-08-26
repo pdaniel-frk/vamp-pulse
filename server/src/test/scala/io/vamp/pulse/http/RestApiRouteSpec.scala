@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import io.vamp.common.akka.{ActorRefFactoryExecutionContextProvider, ActorSystemProvider}
+import io.vamp.common.akka.{ ActorRefFactoryExecutionContextProvider, ActorSystemProvider }
 import org.json4s.Formats
 import org.specs2.mutable.Specification
 import spray.http.HttpHeaders.Accept

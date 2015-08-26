@@ -1,3 +1,5 @@
+import com.typesafe.sbt.SbtScalariform._
+import scalariform.formatter.preferences._
 import sbt.Keys._
 
 organization in ThisBuild := "io.vamp"
@@ -60,7 +62,7 @@ lazy val bintraySetting = Seq(
 // Shared dependencies
 
 val json4sVersion = "3.2.11"
-val vampCommonVersion = "0.7.9-dev.a618e83"
+val vampCommonVersion = "0.7.9-experimental.d9ab71c"
 
 // Note ThisBuild, this is what makes these dependencies shared
 libraryDependencies in ThisBuild ++= Seq(
@@ -98,9 +100,17 @@ val slf4jVersion = "1.7.10"
 val logbackVersion = "1.1.2"
 val junitVersion = "4.11"
 
+lazy val formatting = scalariformSettings ++ Seq(ScalariformKeys.preferences := ScalariformKeys.preferences.value
+  .setPreference(AlignParameters, true)
+  .setPreference(AlignSingleLineCaseStatements, true)
+  .setPreference(DoubleIndentClassDeclaration, true)
+  .setPreference(PreserveDanglingCloseParenthesis, true)
+  .setPreference(RewriteArrowSymbols, true))
+
 lazy val server = project.settings(bintraySetting: _*).settings(
   description := "Server for Vamp Pulse",
   name:="pulse-server",
+  formatting,
   libraryDependencies ++=Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
@@ -136,12 +146,14 @@ lazy val server = project.settings(bintraySetting: _*).settings(
 
 lazy val model = project.settings(bintraySetting: _*).settings(
   description := "Model for Vamp Pulse",
-  name:="pulse-model"
+  name:="pulse-model",
+  formatting
 ).disablePlugins(sbtassembly.AssemblyPlugin)
 
 lazy val client = project.settings(bintraySetting: _*).settings(
   description := "Client for Vamp Pulse",
-  name:="pulse-client"
+  name:="pulse-client",
+  formatting
 ).dependsOn(model).disablePlugins(sbtassembly.AssemblyPlugin)
 
 scalacOptions in ThisBuild ++= Seq(Opts.compile.deprecation, Opts.compile.unchecked) ++

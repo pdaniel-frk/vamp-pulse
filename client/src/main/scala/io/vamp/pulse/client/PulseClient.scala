@@ -9,9 +9,8 @@ import io.vamp.pulse.model._
 import org.json4s.DefaultFormats
 import org.json4s.ext.EnumNameSerializer
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
-
 
 class PulseClient(val url: String)(implicit executionContext: ExecutionContext) {
 
@@ -23,14 +22,14 @@ class PulseClient(val url: String)(implicit executionContext: ExecutionContext) 
     query[List[Event]](EventQuery(tags = tags, Some(TimeRange.from(from, to, includeLower, includeUpper))))
   }
 
-  def query[T <: Any : ClassTag](query: EventQuery)(implicit mf: scala.reflect.Manifest[T]): Future[T] = {
+  def query[T <: Any: ClassTag](query: EventQuery)(implicit mf: scala.reflect.Manifest[T]): Future[T] = {
     implicit val formats = DefaultFormats + new OffsetDateTimeSerializer() + new EnumNameSerializer(Aggregator)
     RestClient.post[T](s"$url/api/v1/events/get", query)
   }
 }
 
 trait PulseClientProvider {
-  this: ExecutionContextProvider =>
+  this: ExecutionContextProvider ⇒
 
   protected def pulseUrl: String
 

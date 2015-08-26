@@ -1,7 +1,7 @@
 package io.vamp.pulse.eventstream
 
-import akka.actor.{ActorRef, ActorSystem}
-import com.sclasen.akka.kafka.{AkkaConsumer, AkkaConsumerProps}
+import akka.actor.{ ActorRef, ActorSystem }
+import com.sclasen.akka.kafka.{ AkkaConsumer, AkkaConsumerProps }
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 import io.vamp.common.akka.IoC
@@ -24,7 +24,7 @@ object SseDriver extends Driver {
 
   override def start(ref: ActorRef, system: ActorSystem): Unit = {
     implicit val actorSystem = system
-    sseActorRef = IoC.createActor(SSESupervisionActor, config.getString("url"))
+    sseActorRef = IoC.createActor[SSESupervisionActor](config.getString("url"))
     sseActorRef ! OpenConnection
   }
 
@@ -58,8 +58,8 @@ object KafkaDriver extends Driver {
 
   override def stop(): Unit = {
     consumer match {
-      case Some(cons) => cons.stop()
-      case None => logger.info("Nothing to stop")
+      case Some(cons) ⇒ cons.stop()
+      case None       ⇒ logger.info("Nothing to stop")
     }
   }
 }

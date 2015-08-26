@@ -1,11 +1,11 @@
 package io.vamp.pulse.http
 
-import akka.actor.{ActorContext, ActorSystem, Props}
+import akka.actor.{ ActorContext, ActorSystem }
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
-import io.vamp.common.akka.{ActorDescription, IoC, Bootstrap}
+import io.vamp.common.akka.{ Bootstrap, IoC }
 import io.vamp.common.http.HttpServerBaseActor
 import org.json4s.Formats
 import spray.can.Http
@@ -20,7 +20,7 @@ object RestApiBootstrap extends Bootstrap {
     val interface = config.getString("interface")
     val port = config.getInt("port")
 
-    val server = IoC.createActor(HttpServerActor)
+    val server = IoC.createActor[HttpServerActor]
 
     implicit val timeout = HttpServerActor.timeout
 
@@ -28,11 +28,10 @@ object RestApiBootstrap extends Bootstrap {
   }
 }
 
-object HttpServerActor extends ActorDescription {
+object HttpServerActor {
 
   lazy val timeout = Timeout(ConfigFactory.load().getInt("vamp.pulse.rest-api.response-timeout").seconds)
 
-  def props(args: Any*): Props = Props[HttpServerActor]
 }
 
 class HttpServerActor extends HttpServerBaseActor with RestApiRoute {

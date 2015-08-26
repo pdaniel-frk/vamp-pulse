@@ -2,31 +2,27 @@ package io.vamp.pulse.eventstream
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{AbstractLoggingActor, ActorRef, Props}
+import akka.actor.{ AbstractLoggingActor, ActorRef }
 import com.typesafe.scalalogging.Logger
-import io.vamp.common.akka.{IoC, ActorDescription, CommonSupportForActors}
+import io.vamp.common.akka.CommonSupportForActors
+import io.vamp.common.akka.IoC._
 import io.vamp.pulse.configuration.TimeoutConfigurationProvider
 import io.vamp.pulse.elasticsearch.ElasticsearchActor
 import io.vamp.pulse.notification._
-import org.glassfish.jersey.client.{ClientConfig, ClientProperties, JerseyClientBuilder}
-import org.glassfish.jersey.media.sse.{EventListener, EventSource, InboundEvent}
+import org.glassfish.jersey.client.{ ClientConfig, ClientProperties, JerseyClientBuilder }
+import org.glassfish.jersey.media.sse.{ EventListener, EventSource, InboundEvent }
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.blocking
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 case object CheckConnection
 
 case object CloseConnection
 
 case object OpenConnection
-
-
-object SSEConnectionActor extends ActorDescription {
-  def props(args: Any*): Props = Props(classOf[SSEConnectionActor], args: _*)
-}
 
 class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with CommonSupportForActors with PulseActorLoggingNotificationProvider with TimeoutConfigurationProvider {
 
@@ -48,9 +44,9 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
   val listener = new EventListener {
     override def onEvent(inboundEvent: InboundEvent): Unit = {
       try {
-        IoC.actorFor(ElasticsearchActor) ! ElasticsearchActor.Index(decoder.fromString(inboundEvent.readData(classOf[String])))
+        actorFor[ElasticsearchActor] ! ElasticsearchActor.Index(decoder.fromString(inboundEvent.readData(classOf[String])))
       } catch {
-        case e: Exception => logger.error(e.getMessage, e)
+        case e: Exception ⇒ logger.error(e.getMessage, e)
       }
     }
   }
@@ -68,7 +64,7 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
 
   override def receive: Receive = {
 
-    case CloseConnection if isOpen =>
+    case CloseConnection if isOpen ⇒
       log.debug("closing sse connection")
       isOpen = false
       if (eventSource.isDefined && eventSource.get.isOpen) {
@@ -76,12 +72,12 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
         eventSource = Option.empty
       }
 
-    case OpenConnection if !isOpen =>
+    case OpenConnection if !isOpen ⇒
       log.debug("opening sse connection")
       isOpen = true
       self ! CheckConnection
 
-    case CheckConnection =>
+    case CheckConnection ⇒
       val result = Try(
         blocking {
           target.request().head()
@@ -90,21 +86,21 @@ class SSEConnectionActor(streamUrl: String) extends AbstractLoggingActor with Co
 
       result match {
 
-        case Failure(_) =>
+        case Failure(_) ⇒
           if (eventSource.isDefined && eventSource.get.isOpen) {
             eventSource.get.close()
             eventSource = Option.empty
           }
           reportException(UnableToConnectError(streamUrl))
 
-        case Success(resp) if resp.getHeaderString("X-Vamp-Stream") != null =>
+        case Success(resp) if resp.getHeaderString("X-Vamp-Stream") != null ⇒
           if (eventSource.isEmpty && isOpen) {
             eventSource = buildEventSource
             eventSource.get.open()
             log.info(message(ConnectionSuccessful(streamUrl)))
           }
 
-        case _ => reportException(NotStreamError(streamUrl))
+        case _ ⇒ reportException(NotStreamError(streamUrl))
       }
 
       if (isOpen) context.system.scheduler.scheduleOnce(config.getInt("sse.connection.checkup") millis, self, CheckConnection)

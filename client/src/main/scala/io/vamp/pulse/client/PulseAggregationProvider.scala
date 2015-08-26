@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 trait PulseAggregationProvider extends PulseClientProvider {
-  this: ExecutionContextProvider =>
+  this: ExecutionContextProvider ⇒
 
   def count(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[LongValueAggregationResult] =
     aggregate[LongValueAggregationResult](tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.count), field))
@@ -23,7 +23,7 @@ trait PulseAggregationProvider extends PulseClientProvider {
   def average(tags: Set[String], from: Option[OffsetDateTime] = None, to: Option[OffsetDateTime] = None, includeLower: Boolean = true, includeUpper: Boolean = true, field: Option[String] = None): Future[DoubleValueAggregationResult] =
     aggregate[DoubleValueAggregationResult](tags, from, to, includeLower, includeUpper, Aggregator(Some(Aggregator.average), field))
 
-  def aggregate[V <: AggregationResult : ClassTag](tags: Set[String], from: Option[OffsetDateTime], to: Option[OffsetDateTime], includeLower: Boolean, includeUpper: Boolean, aggregator: Aggregator)(implicit m: Manifest[V]): Future[V] =
+  def aggregate[V <: AggregationResult: ClassTag](tags: Set[String], from: Option[OffsetDateTime], to: Option[OffsetDateTime], includeLower: Boolean, includeUpper: Boolean, aggregator: Aggregator)(implicit m: Manifest[V]): Future[V] =
     pulseClient.query[V](EventQuery(tags, Some(TimeRange.from(from, to, includeLower, includeUpper)), Some(aggregator)))
 }
 

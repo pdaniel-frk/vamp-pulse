@@ -12,7 +12,6 @@ object Aggregator extends Enumeration {
 
 case class Aggregator(`type`: Option[AggregatorType], field: Option[String] = None)
 
-
 trait AggregationResult
 
 trait SingleValueAggregationResult[T <: Any] extends AggregationResult {
